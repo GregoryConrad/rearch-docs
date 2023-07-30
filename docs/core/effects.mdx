@@ -5,5 +5,113 @@ description: Learn the basics behind side effects in rearch.
 
 # Side Effects
 Although side effects may seem confusing at first, they are the reason rearch is so unique.
+Whenever some feature is not available in the core rearch implementation,
+chances are you just need to create a side effect to add it!
 
-TODO
+Side effects in the Dart/Flutter implementation are heavily inspired by React hooks,
+but share some key differences.
+In the Rust implementation, side effects are largely a new paradigm, and may take some adjustment.
+
+
+## The Theory
+<Info>
+  This section delves a bit deeper into theory than other parts of the documentation;
+  feel free to skip it and go straight to the examples if you wish.
+</Info>
+
+In rearch, side effects are modeled as:
+- Some private mutable data (only accessible to the side effect itself)
+- A way to mutate that private data *outside* of the build (which in turn triggers rebuilds)
+
+Then, side effects expose an api that wrap around their private data and any external mutation(s).
+
+For a concrete example, let's examine the state side effect.
+The state side effect's api is the current state and a function that sets that current state.
+Internally, the private mutable data is just the current state itself,
+and the rebuilding mutation exposed is just a function that
+sets the private data (the current state) to a given new state.
+
+Although it may not seem like it,
+you can model *any* side effect using this same exact methodology.
+
+Further, while capsules form a data flow/dependency graph, side effects form a *tree*.
+This enables side effects to have their own private side effect(s), enabling easy composition.
+
+
+## An Example
+<Error>
+  In Dart, do not conditionally call `use.fooBar()`!
+  In Rust, do not conditionally call `register(effect())`!
+  Doing so is considered an error;
+  *never* wrap `use.fooBar()`/`register(effect())` in an `if` statement.
+  Rearch will likely throw a fit as soon as you mess this up, but it can't catch 100% of cases.
+</Error>
+
+Here is a quick example showing how to use a few side effects.
+See the side effect library and api documentation for more information.
+
+<CodeGroup title="Using side effects">
+  ```dart
+  // A toy capsule that uses a few side effects
+  (Something, void Function(int)) usesSideEffects(CapsuleHandle use) {
+    // First, let's create some mutable state
+    final (state, setState) = use.state(1234);
+
+    // Next, let's create an instance of some object using this state
+    final somethingMadeWithState = use.memo(() => Something(state), [state]);
+
+    // Finally, let's register this object to be disposed whenever a new one is created
+    use.effect(() => somethingMadeWithState.dispose, [somethingMadeWithState]);
+
+	// ...and let's return that object along with a way to set the state
+    return (somethingMadeWithState, setState);
+  };
+  ```
+
+  ```rust
+  // Capsule that counts the number of times it builds
+  fn count_builds(CapsuleHandle { mut get, register }: CapsuleHandle) -> u64 {
+      let is_first_build = register(side_effects::is_first_build());
+      if is_first_build {
+          1
+      } else {
+          get(count_builds) + 1
+      }
+  }
+
+  // Alternative way to write a capsule that counts the number of times it builds
+  fn alt_count_builds(CapsuleHandle { register, .. }: CapsuleHandle) -> u64 {
+      let builds = register(side_effects::value(0));
+      *builds += 1;
+      *builds
+  }
+  ```
+</CodeGroup>
+
+
+## Widget Side Effects (Flutter Only)
+In Flutter, in addition to the capsule-only `SideEffect`,
+there is also a `WidgetSideEffect`.
+`WidgetSideEffect`s pack in some widget-specific functionality,
+like listening to widget lifecycle events and exposing a `BuildContext`.
+
+When possible, try to write side effects as regular `SideEffect`s
+(to enable reusability amongst capsules and widgets),
+although it is appropriate to make `WidgetSideEffect`s:
+- When you need some widget-specific functionality
+- When it only would ever make sense to use the side effect from a widget
+(say, for an `AnimationController`).
+
+See [the builtin `WidgetSideEffect`s](https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html).
+
+
+## Side Effect Library
+See the side effect library on the left sidebar for documentation
+on some of the builtin side effects!
+
+
+## Creating Custom Side Effects
+Help is wanted for this section!
+
+In the meantime, take a peak at the source code for the builtin side effects,
+as a lot of them use composition under the hood and are a good starting point.
