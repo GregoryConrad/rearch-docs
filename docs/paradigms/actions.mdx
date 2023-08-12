@@ -1,0 +1,106 @@
+---
+title: Actions
+description: Learn the basics behind actions in rearch.
+---
+
+# Actions
+Actions (sometimes called action capsules) are fairly similar to factory capsules,
+at least in the sense that they are capsules that return a function.
+However, unlike factories, actions aren't designed to create a value (most of the time),
+but instead perform some operation (which typically involves some side effects).
+
+Actions are a useful abstraction for *all* functions that are invoked in other capsules or UI,
+but especially so for those that rely on the data in some other capsules.
+
+Here's the overused count example, but with an action capsule exposing the increment operation.
+<CodeGroup title="Creating Asynchronous Capsules">
+  ```dart
+  (int, void Function()) countManager(CapsuleHandle use) {
+    final (count, setCount) = use.state(0);
+    return (count, () => setCount(count + 1));
+  }
+
+  // Another good name for the following is "incrementAction"
+  void Function() countIncrementor(CapsuleHandle use) => use(countManager).$2;
+  ```
+
+  ```rust
+  fn count(CapsuleHandle { register, .. }: CapsuleHandle) -> (u32, impl Fn() + Clone + Send + Sync) {
+      let (state, set_state) = register(side_effects::state(0));
+      let state = *state;
+      let increment = move || set_state(state + 1);
+      (state, increment)
+  }
+  
+  fn increment(CapsuleHandle { mut get, .. }: CapsuleHandle) -> impl Fn() + Clone + Send + Sync {
+      get(count).1
+  }
+  ```
+</CodeGroup>
+
+## Practical Example
+> Some years ago, I wrote an invoicing/billing application for a financial firm using Rx
+> and some other technologies.
+> I recently had to update the application and decided it'd be a great test of rearch.
+> I created this particular paradigm, amongst several others, during that rewrite.
+
+Take the following (simplified) requirements for a billing application:
+1. Load client information, including their assets
+2. Generate a pdf of bills to be sent to the clients
+3. Download/print those bills
+4. Print envelopes to send the bills in
+5. Export/display some other information/statistics requested by the firm
+
+Spoiler: every single one of these requirements can be modeled as an action!
+(In the actual implementation I wrote,
+generating bills/envelopes/statistics were moved into private capsules
+outside of the actual actions to enable caching in some situations, which you can see below.)
+
+Here's a (condensed) view of what my implementation looks like for the above requirements.
+```dart
+// Loading Clients:
+
+/// Action that loads all clients from an Excel file.
+void Function() clientLoaderCapsule(CapsuleHandle use) {
+  // allClientsManager is a capsule that uses the mutation side effect to load
+  // in clients from a user-supplied Excel file.
+  return use(allClientsManager).mutate;
+}
+
+
+// Invoicing:
+
+/// Represents the invoices for the clients to bill.
+Future<Uint8List> _invoicesCapsule(CapsuleHandle use) => throw 'Impl hidden';
+
+/// Action that prints the invoices.
+Future<void> Function() invoicesPrinterCapsule(CapsuleHandle use) {
+  final invoices = use(_invoicesCapsule);
+  return () => Printing.layoutPdf(onLayout: (_) => invoices);
+}
+
+/// Action that downloads the invoices.
+Future<void> Function() invoicesDownloaderCapsule(CapsuleHandle use) {
+  final invoices = use(_invoicesCapsule);
+  final filename = use(_invoicesFilenameCapsule); // another private capsule
+  return () async =>
+      Printing.sharePdf(bytes: await invoices, filename: filename);
+}
+
+
+// Envelopes:
+
+/// Represents the envelopes for the clients to bill.
+Future<Uint8List> _envelopesCapsule(CapsuleHandle use) => throw 'Impl hidden';
+
+/// Action that prints the envelopes.
+Future<void> Function() envelopesPrinterCapsule(CapsuleHandle use) {
+  final envelopes = use(_envelopesCapsule);
+  return () => Printing.layoutPdf(onLayout: (_) => envelopes);
+}
+```
+
+See how easy it becomes to model an application like the above?
+Plus, this paradigm *completely removes code coupling*,
+as your UI/other capules will have absolutely no knowledge
+of how any of the business logic works and are only given a function to call.

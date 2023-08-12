@@ -10,7 +10,6 @@ logo: https://github.com/GregoryConrad/rearch-docs/blob/main/assets/logo.png?raw
 #   apiKey: 599cec31baffa4868cae4e79f180729b
 #   indexName: docsearch
 
-# TODO hide that extra GitHub anchor that points to docs at the bottom
 
 anchors:
   - title: Pub.dev Package
@@ -28,6 +27,7 @@ anchors:
   - title: GitHub (Docs)
     icon: github
     link: https://github.com/GregoryConrad/rearch-docs
+  # TODO hide that extra GitHub anchor that points to docs at the bottom
   # TODO funding & discord
   # - title: 'Sponsor Me'
   #   icon: 'hand-holding-dollar'
@@ -45,21 +45,24 @@ sidebar:
         - /core/capsules
       - - Containers
         - /core/containers
-      - - Factories
-        - /core/factories
-      - - (Flutter) Widgets
-        - /core/widgets
       - - Side Effects
         - /core/effects
-  - - Advanced
-    - - - Warming Up Capsules (Async to Sync)
-        - /advanced/warming-up-capsules
-      - - Reducing Builds
-        - /advanced/reducing-builds
-      - - (Flutter) Infinite Scrolling
-        - /advanced/infinite-scrolling
-      - - (Flutter) Scoping State
-        - /advanced/scoping-state
+  - - Paradigms
+    - - - Factories
+        - /paradigms/factories
+      - - Actions
+        - /paradigms/actions
+      - - Asynchronous Capsules
+        - /paradigms/async-capsules
+      - - Warm Up Capsules (Async to Sync)
+        - /paradigms/warm-up-capsules
+  - - Flutter Specific
+    - - - Widgets
+        - /flutter/widgets
+      - - Infinite Scrolling
+        - /flutter/infinite-scrolling
+      - - Scoping State
+        - /flutter/scoping-state
   - - Side Effect Library
     - - - Call Once
         - /effects/callonce

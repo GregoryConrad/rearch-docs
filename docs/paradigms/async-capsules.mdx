@@ -1,0 +1,109 @@
+---
+title: Async Capsules
+description: Learn the basics behind asynchronous capsules in rearch.
+---
+
+# Async Capsules
+Often, you want to make a capsule that wraps around some asynchronous code
+so that asynchronous code can be utilized in other capsules.
+This poses an interesting problem, as every capsule is synchronous by nature.
+The solution: side effects!
+Side effects are indeed the mechanism that allows for external events to trigger capsule updates,
+which is exactly what we need here.
+
+
+## An Example
+<CodeGroup title="Creating Asynchronous Capsules">
+  ```dart
+  int countCapsule(CapsuleHandle _) => 0;
+
+  /// Our "raw" async capsule that directly returns a Future (can also return a Stream).
+  Future<int> delayedAsyncCapsule(CapsuleHandle use) async {
+    // All capsule reads and side effects *must* be before the first `await`.
+    // (But often, it is preferable to avoid side effects in async capsules.)
+    final count = use(countCapsule);
+
+    final delayedCount = await Future.delayed(
+      const Duration(seconds: 1),
+      () => count,
+    );
+
+    return delayedCount + 1;
+  }
+
+  /// Our "wrapper" capsule that returns an AsyncValue, which is often more useful in UI code.
+  /// This wrapper also ensures that delayedAsyncCapsule's value is cached within the Container,
+  /// as this capsule utilizes a side effect.
+  AsyncValue<int> delayedCapsule(CapsuleHandle use) {
+    final delayed = use(delayedAsyncCapsule);
+    return use.future(delayed);
+  }
+
+  // A macro like the following is *planned* to make this easier/less error-prone.
+  // If you would like to see this macro sooner rather than later, please +1 this issue:
+  // https://github.com/dart-lang/language/issues/3210
+  @asyncCapsule
+  Future<int> delayed(
+    @countCapsule int count,
+  ) async {
+    final delayedCount = await Future.delayed(
+      const Duration(seconds: 1),
+      () => count,
+    );
+    return delayedCount + 1;
+  }
+  ```
+
+  ```rust
+  // There are a few different ways to do this, but the following is the most standard way.
+  // This requires the tokio-side-effects feature to be enabled.
+  // TODO
+  ```
+</CodeGroup>
+
+
+## Refreshable Asynchronous Capsules
+<Info>This section is Dart/Flutter only, as futures are handled slightly differently in Rust.</Info>
+
+The created `delayedCapsule` in the above example is just a read-only "view" of the future.
+It doesn't contain any state of its own and merely stores the current value of the async capsule.
+If you want to refresh the delayed capule's state, say by fetching new data from online,
+we need a slightly different approach which will swap in a new future.
+`refreshableFuture` side effect to the rescue!
+
+```dart
+(AsyncValue<int>, void Function()) refreshableDelayedCapsule(CapsuleHandle use) {
+  return use.refreshableFuture(() {
+    return Future.delayed(const Duration(seconds: 1), () => 1234);
+  });
+}
+```
+
+
+## What is `AsyncValue`/`AsyncState`?
+You may notice that when applying the asynchronous side effects,
+you are given data of type `AsyncValue<T>`/`AsyncState<T>`.
+
+This is entirely intentional;
+it allows you to handle the current state of asynchronous code synchronously,
+which is needed as rearch *builds are completely synchronous* and (in Dart) *cannot throw*.
+As such, it is highly recommended that you learn how to properly work with `AsyncValue`/`AsyncState`
+instead of trying to avoid it.
+
+
+### Dart's `AsyncValue`
+`AsyncValue`s represent one of three states for futures and streams:
+- Future/stream is still loading and has not emitted anything (`AsyncLoading`)
+- Future/stream emitted data (`AsyncData`)
+- Future/stream emitted an error (`AsyncError`)
+
+See `AsyncValue`'s API docs for more.
+
+
+### Rust's `AsyncState`
+`AsyncState`s represent one of three states for futures and mutations:
+- Future has not yet been set (`Idle`)
+- Future is still loading and has not emitted anything (`Loading`)
+- Future emitted data (`Complete`)
+
+See `AsyncState`'s API docs for more.

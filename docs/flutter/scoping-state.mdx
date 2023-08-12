@@ -1,0 +1,29 @@
+---
+title: Scoping State
+description: Learn how to scope state in rearch.
+---
+
+# Scoping State 
+This page is a WIP, but you can use a RearchConsumer in conjunction with InheritedWidget.
+
+Something like the following macro is planned that will kill
+all of the RearchConsumer + InheritedWidget boilerplate:
+
+```dart
+@inheritedRearchWidget
+(int, void Function()) scopedCount(WidgetHandle use) {
+  final (count, setCount) = use.state(0);
+  return (count, () => setCount(count + 1));
+}
+
+const SomeWidget(
+  child: ScopedCount(
+    child: Builder(
+      builder: (context) {
+	    final (count, _incrementCount) = ScopedCount.of(context);
+		return Text('$count');
+      },
+    )
+  ),
+)
+```

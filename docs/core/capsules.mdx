@@ -95,99 +95,158 @@ The `SideEffectRegistrar` provides the familiar set of `use.fooBar()` side effec
 and `register(effect1(), effect2())` in Rust. See [the docs on side effects](/core/effects) for more.
 
 
-## Asynchronous Capsules
-Often, you want to make a capsule that wraps around some asynchronous code
-so that asynchronous code can be utilized in other capsules.
-This poses an interesting problem, as every capsule is synchronous by nature.
-The solution: side effects!
-Side effects are indeed the mechanism that allows for external events to trigger capsule updates,
-which is exactly what we need here (but again, more on side effects later)!
+## Reducing Builds
+Reducing builds is a useful optimization that can be done in rearch through:
+1. Conditionally using capsules
+2. Inline capsules
 
 
-### An Example
-<CodeGroup title="Creating Asynchronous Capsules">
+### When Do You Need to Reduce Rebuilds?
+Consider the following capsule.
+
+<CodeGroup title="Capsule with excessive rebuilds">
   ```dart
-  int countCapsule(CapsuleHandle _) => 0;
-
-  /// Our "raw" async capsule that directly returns a Future (can also return a Stream).
-  Future<int> delayedAsyncCapsule(CapsuleHandle use) async {
-    // All capsule reads and side effects *must* be before the first `await`.
-    // (But often, it is preferable to avoid side effects in async capsules.)
+  FooBar expensiveOperationUsingCount(CapsuleHandle use) {
     final count = use(countCapsule);
-
-    final delayedCount = await Future.delayed(
-      const Duration(seconds: 1),
-      () => count,
-    );
-
-    return delayedCount + 1;
-  }
-
-  /// Our "wrapper" capsule that returns an AsyncValue, which is often more useful in UI code.
-  /// This wrapper also ensures that delayedAsyncCapsule's value is cached within the Container,
-  /// as this capsule utilizes a side effect (use.future in this case, but more on effects later).
-  AsyncValue<int> delayedCapsule(CapsuleHandle use) {
-    final delayed = use(delayedAsyncCapsule);
-    return use.future(delayed);
-  }
-
-  // A macro like the following is *planned* to make this easier/less error-prone.
-  // If you would like to see this macro sooner rather than later, please +1 this issue:
-  // https://github.com/dart-lang/language/issues/3210
-  @asyncCapsule
-  Future<int> delayed(
-    @countCapsule int count,
-  ) async {
-    final delayedCount = await Future.delayed(
-      const Duration(seconds: 1),
-      () => count,
-    );
-    return delayedCount + 1;
+    final isWatching = use(isWatchingCapsule);
+    return someExpensiveOperation(isWatching ? count : null);
   }
   ```
 
   ```rust
-  // There are a few different ways to do this, but the following is the most standard way.
-  // This requires the tokio-side-effects feature to be enabled.
-  // TODO
+  fn expensive_operation_using_count(CapsuleHandle { mut get, .. }: CapsuleHandle) -> FooBar {
+    let count = get(count);
+    let is_watching = get(is_watching);
+    return some_expensive_operation(if is_watching { Some(count) } else { None });
+  }
   ```
 </CodeGroup>
 
+This looks ok until you realize that whenever `count` changes,
+`someExpensiveOperation`/`some_expensive_operation` will be called again,
+even if `isWatching`/`is_watching` is false!
+These extra rebuilds can be removed with the following.
 
-### Refreshable Asynchronous Capsules
-The created `delayedCapsule`/`delayed_capsule` in the above example
-is just a read-only "view" of the future.
-It doesn't contain any state of its own and merely caches the current value of the async capsule.
-If you want to refresh the delayed capule's state, say by fetching new data from online,
-we need a slightly different approach which will swap in a new future.
+<CodeGroup title="Limiting extra rebuilds">
+  ```dart
+  FooBar expensiveOperationUsingCount(CapsuleHandle use) {
+    if (use(isWatchingCapsule)) {
+      // Having this use within a branch will stop rebuilds caused by
+      // countCapsule when isWatching is false.
+      return someExpensiveOperation(use(countCapsule));
+    }
+    return someExpensiveOperation(null);
+  }
+  ```
 
-> TODO just wrapper around mutation or something that recomputes future
+  ```rust
+  fn expensive_operation_using_count(CapsuleHandle { mut get, .. }: CapsuleHandle) -> FooBar {
+    if get(is_watching) {
+      // Having this get within a branch will stop rebuilds caused by
+      // count when is_watching is false.
+      some_expensive_operation(Some(get(count)))
+    } else {
+      some_expensive_operation(None)
+    }
+  }
+  ```
+</CodeGroup>
+
+However, this simple conditional watching is not always enough to reduce some builds;
+sometimes, `someExpensiveOperation` is a `Widget` rebuild in Flutter,
+where the rebuild depends upon some non-encapsulable data (such as a key in a large collection).
+For situations like this, you likely need *inline capsules*
+to prevent rebuilding potentially thousands of Widgets displaying the current data in a collection
+whenever just a single entry is modified.
 
 
-### What is `AsyncValue`/`AsyncState`?
-You may notice that when applying the asynchronous side effects,
-you are given data of type `AsyncValue<T>`/`AsyncState<T>`.
+## Inline Capsules
+Inline capsules are just regular capsules (which, as a reminder, are just functions),
+but are unique because they are *closures*.
 
-This is entirely intentional;
-it allows you to handle the current state of asynchronous code synchronously,
-which is needed as rearch *builds are completely synchronous* and (in Dart) *cannot throw*.
-As such, it is highly recommended that you learn how to properly work with `AsyncValue`/`AsyncState`
-instead of trying to avoid it.
+<Info>
+  While you can *define* inline capsules in Rust, they are largely useless at the moment,
+  because Rust does not (yet) support negative trait implementations
+  (which are needed in order to support these build optimizations).
+  Thus, the rest of this page only applies to Dart at the moment.
+
+  To give some context to the problem, capsules are not forced to be `PartialEq`,
+  but when a capsule happens to be `PartialEq`,
+  we want to skip rebuilding dependents when `newData == oldData`.
+  I have not yet found a way to do this without negative trait implementations,
+  but if you have an idea, please open a PR!
+  It might be possible via trait upcasting, but I haven't looked into it enough to know for sure.
+</Info>
+
+There are two ways to create inline capsules:
+- `myCapsule.map()`, a convenience extension method that creates an inline capsule
+- Manually (but caution must be used here)!
+
+Each solves slightly different use-cases.
+However, when possible, it is best to make new *intermediary* top-level capsules instead,
+and let rearch use its own optimizations to limit rebuilds.
+Remember, capsules are cheap, and are designed to be composed.
+You should only very rarely use inline capsules,
+and when you do, make sure they are *very cheap* (ideally just a constant-time look-up).
 
 
-#### Dart's `AsyncValue`
-`AsyncValue`s represent one of three states for futures and streams:
-- Future/stream is still loading and has not emitted anything (`AsyncLoading`)
-- Future/stream emitted data (`AsyncData`)
-- Future/stream emitted an error (`AsyncError`)
+### `.map()`
+The example Flutter app utilizes `.map()` to reduce some rebuilds,
+so see that for a more full example.
+However, here is a simple example to give you an idea of how `.map()` works.
 
-See `AsyncValue`'s API docs for more.
+```dart title="Inline capsule example with .map()"
+@rearchWidget
+Widget myListItem({
+  int listIndex,
+  WidgetHandle use,
+}) {
+  // With this inline capsule, we only rebuild when the data at
+  // myList[listIndex] changes, instead of the whole myList.
+  final dataAtIndex = use(
+    // This creates a new inline capsule that gets a particular index of myList:
+    myListCapsule.map((myList) => myList[listIndex]),
+  );
+  return Text('$dataAtIndex');
+}
+```
 
 
-#### Rust's `AsyncState`
-`AsyncState`s represent one of three states for futures and mutations:
-- Future has not yet been set (`Idle`)
-- Future is still loading and has not emitted anything (`Loading`)
-- Future emitted data (`Complete`)
+### Manual Inline Capsules
+Contrary to the `.map()` convenience method, manual inline capsules define the closure explicitly.
+This is beneficial when your inline capsule depends on >1 other capsules,
+which should be rather rare.
 
-See `AsyncState`'s API docs for more.
+<Warning>
+  Only use manual inline capsules when your inline capsule needs to `use`
+  *multiple* different capsules,
+  as manual inline capsules are easier to mess up and cause leaks!
+</Warning>
+
+Here's the previous example, but rewritten to use a manually defined inline capsule.
+```dart title="Manual inline capsule example"
+@rearchWidget
+Widget myListItem({
+  int listIndex,
+  WidgetHandle use,
+}) {
+  // With this inline capsule, we only rebuild when the data at
+  // myList[listIndex] changes, instead of the whole myList.
+  final dataAtIndex = use(
+    // This creates a new inline capsule that gets a particular index of myList:
+    (CapsuleReader use) => use(myListCapsule)[listIndex],
+
+    // While the following works, it is considered a bad practice
+	// (keep reading for an explanation):
+    // (use) => use(myListCapsule)[listIndex],
+  );
+  return Text('$dataAtIndex');
+}
+```
+
+Notice above how the parameter is declared as `CapsuleReader use`;
+while you actually get a full `CapsuleHandle` here for the inline capsule,
+you must be careful to not use any side effects (`use.fooBar()`) or *you will cause leaks*.
+Thus, it is considered to be a best practice to prevent yourself from using side effects
+by declaring the parameter type as `CapsuleReader` instead of letting it get inferred
+as a `CapsuleHandle` (which is what happens if you do not explicitly specify `CapsuleReader`).

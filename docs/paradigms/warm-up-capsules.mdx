@@ -1,19 +1,18 @@
 ---
-title: Warming Up Capsules
+title: Warm Up Capsules
 description: Learn about warm up capsules and how to use them in rearch.
 ---
 
-# Warming Up Capsules
-Warming up capsules is useful when you have
-asynchronous capsules whose values you want to access synchronously in the future,
+# Warm Up Capsules
+Warm up capsules are useful when you have some
+asynchronous capsule whose value you want to access synchronously in the future,
 without needing all dependent capsules to themselves be asynchronous.
 This is especially helpful when dealing with something like a
-`SharedPreferences` or `FirebaseApp` instance (in Dart/Flutter) or a database connection (in Rust),
+`SharedPreferences` or `FirebaseApp` instance (in Dart/Flutter)
+or a database connection (in Rust),
 which you can only get a copy of asynchronously.
 
-You *warm up* warm up capsules
-(yes, "warm up capsules" are a particular type of capsule used in this pattern)
-so that any dependent capsules are ready to use.
+You *warm up* warm up capsules so that any dependent capsules are ready to use.
 For Flutter, there is a simple built-in extension method to help you warm up capsules,
 named `.toWarmUpWidget()`.
 
