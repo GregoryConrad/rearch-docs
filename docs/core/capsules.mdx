@@ -95,6 +95,41 @@ The `SideEffectRegistrar` provides the familiar set of `use.fooBar()` side effec
 and `register(effect1(), effect2())` in Rust. See [the docs on side effects](/core/effects) for more.
 
 
+## Generic Capsules
+As a reminder, a capsule is just a function that consumes a `CapsuleHandle` and returns some data.
+Because of this realization, *generic* functions that consume `CapsuleHandle`s are *also* capsules.
+This can lead to some pretty interesting patterns, a (somewhat useless) example of which is below.
+<CodeGroup title="Generic capsules example">
+  ```dart
+  List<T> Function(T, int) repeatedItemFactory<T>(CapsuleHandle use) {
+    return (itemToRepeat, repetitions) => List.generate(repetitions, (_) => itemToRepeat);
+  }
+
+  // ...
+  final repeatedIntsFactory = container.read(repeatedItemFactory<int>);
+  final repeatedStringsFactory = container.read(repeatedItemFactory<String>);
+  final repeatedStrings = repeatedStringsFactory("this will be repeated 1234 times!", 1234);
+  ```
+
+  ```rust
+  fn repeated_item_factory<T: Clone>(
+      _: CapsuleHandle,
+  ) -> impl Fn(T, usize) -> Vec<T> + Clone + Send + Sync {
+      |item_to_repeat, repetitions| (0..repetitions).map(|_| item_to_repeat.clone()).collect()
+  }
+
+  // ...
+  let repeated_ints_factory = container.read(repeated_item_factory::<i32>);
+  let repeated_strs_factory = container.read(repeated_item_factory::<&str>);
+  let repeated_strs = repeated_strs_factory("this will be repeated 1234 times!", 1234);
+  ```
+</CodeGroup>
+<Info>
+  Notice how the capsule above returns a *function*;
+  this is a very useful pattern that will be revisited again in the pages on the factories/actions.
+</Info>
+
+
 ## Reducing Builds
 Reducing builds is a useful optimization that can be done in rearch through:
 1. Conditionally using capsules
