@@ -89,6 +89,20 @@ The `CapsuleReader` provides the familiar `use(...)` syntax in Dart and `get(...
   ```
 </CodeGroup>
 
+<Warning>
+  In Dart, if you are upcasting your capsule's data:
+  ```dart
+    // Either implicitly (myListOfCapsulesData will be List<CommonSuperType>):
+    final myListOfCapsulesData = [use(myCapsule), use(anotherCapsule)];
+
+    // Or explicitly (Object is the super type in this example):
+    final Object data = use(myCapsule);
+  ```
+
+  You must manually write `use<ActualTypeOfMyCapsule>(myCapsule)`,
+  so that Dart will use the proper type for the capsule.
+</Warning>
+
 
 ### The `SideEffectRegistrar`
 The `SideEffectRegistrar` provides the familiar set of `use.fooBar()` side effects in Dart 
