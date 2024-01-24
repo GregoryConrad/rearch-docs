@@ -1,4 +1,4 @@
-name: Rearch
+name: ReArch
 description: Re-imagined approach to application design and architecture
 theme: "#7f00ff"
 automaticallyDisplayName: false
@@ -25,7 +25,7 @@ anchors:
   - title: GitHub (Docs)
     icon: github
     link: https://github.com/GregoryConrad/rearch-docs
-  - title: 'Sponsor Me'
+  - title: Sponsor Me
     icon: 'hand-holding-dollar'
     link: https://github.com/sponsors/GregoryConrad
   # TODO discord or community of some sort
@@ -54,6 +54,8 @@ sidebar:
         - /paradigms/async-capsules
       - - Warm Up Capsules (Async to Sync)
         - /paradigms/warm-up-capsules
+      - - Listeners and Logging
+        - /paradigms/listeners
   - - Flutter Specific
     - - - Widgets
         - /flutter/widgets
@@ -62,7 +64,9 @@ sidebar:
       - - Scoping State
         - /flutter/scoping-state
   - - Side Effect Library
-    - - - Call Once
-        - /effects/callonce
-      - - Persistence
-        - /effects/persist
+    - - - Rust Effects
+        - https://docs.rs/rearch-effects/latest/rearch_effects/
+      - - Dart Effects
+        - https://pub.dev/documentation/rearch/latest/rearch/BuiltinSideEffects.html
+      - - Flutter Widget Effects
+        - https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html

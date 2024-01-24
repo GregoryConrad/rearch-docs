@@ -1,32 +1,32 @@
 ---
-title: Rearch
-description: The documentation homepage of rearch.
+title: ReArch
+description: The documentation homepage of ReArch.
 ---
 
-# rearch
+# ReArch
 
 <p align="center">
 <img src="https://github.com/GregoryConrad/rearch-docs/blob/main/assets/banner.jpg?raw=true" width="100%" alt="Banner" />
 </p>
 
 <p align="center">
-rearch = re-imagined approach to application design and architecture
+ReArch = re-imagined approach to application design and architecture
 </p>
 
 ---
 
 
 ## Features
-Specifically, rearch is a:
-- ⚡️ Reactive
-- 🧮 Functional
-- 🔍 Testable
-- 🧱 Composable
-- 🔌 Extendable
-- ⬆️ Scalable
-- 💉 Dependency Injection
+Specifically, ReArch is a novel solution to:
+- ⚡️ State Management
+- 🧮 Incremental Computation
+- 🧱 Component-Based Software Engineering
 
-Framework.
+And with those, come:
+- Reactivity through declarative code
+- Loose coupling and high testability
+- App-level composability via a functional approach to dependency inversion
+- [Feature composition through _side effects_](https://blog.gsconrad.com/2023/12/22/the-problem-with-state-management.html)
 
 
 ## In a Nutshell 
@@ -55,18 +55,15 @@ Define your "capsules" (en-_capsulated_ pieces of state) at the top level:
 
   // This particular capsule manages a count from a classic example counter app,
   // using the state side effect.
-  fn count(
-      CapsuleHandle { register, .. }: CapsuleHandle,
-  ) -> (u32, impl Fn() + Clone + Send + Sync) {
-      let (state, set_state) = register(side_effects::state(0));
-      let state = *state;
-      let increment = move || set_state(state + 1);
-      (state, increment)
+  fn count_manager(CapsuleHandle { register, .. }: CapsuleHandle) -> (u32, impl CData + Fn()) {
+      let (count, set_count) = register(effects::cloneable::state(0));
+      let increment_count = move || set_count(count + 1);
+      (count, increment_count)
   }
 
   // This capsule provides the current count, plus one.
-  fn count_plus_one(CapsuleHandle { mut get, .. }: CapsuleHandle) -> u32 {
-      let (count, _increment) = get(count);
+  fn count_plus_one_capsule(CapsuleHandle { mut get, .. }: CapsuleHandle) -> u32 {
+      let (count, _increment_count) = get(count_manager);
       count + 1
   }
   ```

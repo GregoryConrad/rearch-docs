@@ -4,12 +4,11 @@ description: Get answers to some frequently asked questions in ReArch.
 ---
 
 # Frequently Asked Questions
-
 If you have a question, please make a discussion post and I may post the outcome here!
 
-Q: Do state side effects trigger rebuilds internally?
 
-A: Yes! As a general rule of thumb,
+## Do state side effects trigger rebuilds internally?
+Yes! As a general rule of thumb,
 any side effect that mutates some state _external to the build_
 and then _returns that state_ or a value dependent upon that state
 will likely trigger rebuilds.
@@ -19,9 +18,8 @@ While `use.memo` updates a state value, it is done within the build itself,
 so it doesn't trigger any rebuilds.
 
 
-Q: Does rebuild() trigger rebuilds immediately? Or can you call it back-to-back?
-
-A: For capsules: yes.
+## Does `rebuild()` trigger rebuilds immediately? Or can you call it back-to-back?
+For capsules: yes.
 Calling `rebuild()` multiple times in a row will trigger multiple rebuilds.
 This is also true for calling different `setState`s or similar back-to-back;
 multiple rebuilds are triggered.
@@ -38,15 +36,15 @@ void updateMultipleEffectsInOneBuild() {
   });
 }
 ```
-For widgets: no.
+For Flutter widgets: no.
 Rebuilds are automatically batched together on the next frame via flutter’s build scheduler
 (ReArch internally calls
 [`Element.markNeedsBuild`](https://api.flutter.dev/flutter/widgets/Element/markNeedsBuild.html)).
 
-Q: What is the purpose of `SideEffectRegisrar.register()`?
 
-A: `use.register()`, as it is often seen, is meant to implement rather low-level side effects,
-and thus you often wouldn't need to use it directly.
+## (Dart/Flutter) What is the purpose of `SideEffectRegisrar.register()`?
+`use.register()`, as it is often seen, is meant to implement rather low-level side effects,
+and thus you often won't need to use it directly.
 It essentially is a combination of a way to access the outside world
 (via the `SideEffectApi`),
 coupled with a way to call some certain function _only on the first build_,

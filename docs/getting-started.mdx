@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: Getting started and set up instructions with rearch.
+description: Getting started and set up instructions with ReArch.
 ---
 
 # Getting Started
@@ -40,10 +40,13 @@ description: Getting started and set up instructions with rearch.
   </TabItem>
   <TabItem value="rust">
     Simply run:
-    `cargo add rearch`
+    `cargo add rearch rearch-effects`
     
     And then just create one container for your application.
     ```rust title="Creating a container"
+    use rearch::*;
+    use rearch_effects as effects;
+
     fn main() {
         let container = Container::new();
         // Use the container.

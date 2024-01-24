@@ -1,15 +1,15 @@
 ---
 title: Capsules
-description: Learn the basics behind capsules in rearch.
+description: Learn the basics behind capsules in ReArch.
 ---
 
 # Capsules
-Capsules are the most fundamental building block of rearch.
+Capsules are the most fundamental building block of ReArch.
 Capsules en-_capsulate_ some data, thus their name.
 
 <Info>
   Data here encompasses more than just raw data; it also includes functions.
-  This is an important consideration, as rearch is highly functional.
+  This is an important consideration, as ReArch is highly functional.
 </Info>
 
 
@@ -26,12 +26,12 @@ Capsules let you think in this manner by themselves being *functions of state*
 (and side effects too, but more on that later).
 This may sound wishy-washy, so here is a concrete example:
 ```dart title="Basic count and countPlusOne capsules"
-int count(CapsuleHandle use) => 0;
+int countCapsule(CapsuleHandle use) => 0;
 
-int countPlusOne(CapsuleHandle use) => use(count) + 1;
+int countPlusOneCapsule(CapsuleHandle use) => use(count) + 1;
 ```
-Notice here how `countPlusOne` *consumes* `count`;
-i.e., `countPlusOne` is a function of state, where the state is the current `count`!
+Notice here how `countPlusOneCapsule` *consumes* `countCapsule`;
+i.e., `countPlusOneCapsule` is a function of state, where the state is the current `countCapsule`!
 
 As you can see in the above example, capsules are nothing special;
 every capsule is merely a function that consumes a `CapsuleHandle`.
