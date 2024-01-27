@@ -53,16 +53,15 @@ Define your "capsules" (en-_capsulated_ pieces of state) at the top level:
   // The CapsuleHandle lets you get the data of other capsules,
   // in addition to using a large variety of side effects.
 
-  // This particular capsule manages a count from a classic example counter app,
-  // using the state side effect.
-  fn count_manager(CapsuleHandle { register, .. }: CapsuleHandle) -> (u32, impl CData + Fn()) {
-      let (count, set_count) = register(effects::cloneable::state(0));
+  // This capsule provides a count and a way to increment that count.
+  fn count_manager(CapsuleHandle { register, .. }: CapsuleHandle) -> (u8, impl CData + Fn()) {
+      let (count, set_count) = register(effects::state::<Cloned<_>>(0));
       let increment_count = move || set_count(count + 1);
       (count, increment_count)
   }
 
-  // This capsule provides the current count, plus one.
-  fn count_plus_one_capsule(CapsuleHandle { mut get, .. }: CapsuleHandle) -> u32 {
+  // This capsule provides the count, plus one.
+  fn count_plus_one_capsule(CapsuleHandle { mut get, .. }: CapsuleHandle) -> u8 {
       let (count, _increment_count) = get(count_manager);
       count + 1
   }

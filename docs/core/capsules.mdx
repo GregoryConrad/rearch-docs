@@ -23,7 +23,7 @@ chances are high that it depends on some other form of state in your application
 
 ### Functions of State
 Capsules let you think in this manner by themselves being *functions of state*
-(and side effects too, but more on that later).
+(and more generally, side effects, but more on that later).
 This may sound wishy-washy, so here is a concrete example:
 ```dart title="Basic count and countPlusOne capsules"
 int countCapsule(CapsuleHandle use) => 0;
@@ -35,13 +35,13 @@ i.e., `countPlusOneCapsule` is a function of state, where the state is the curre
 
 As you can see in the above example, capsules are nothing special;
 every capsule is merely a function that consumes a `CapsuleHandle`.
+A capsule's power is derived from from _how you use the `CapsuleHandle`_ within the capsule.
 
 
 ### Immutability
 Capsules were designed with the intent that the data they produce is *immutable*.
-In Rust, this is enforced via requiring capsule data to be `Clone`,
-and giving you a cloned copy of the data (you're welcome to wrap non-`Clone` types in `Arc`).
-In Dart, it is up to you to make sure you do not directly mutate a Capsule's data
+In Rust, this is enforced via never providing a `&mut` to any capsule's data.
+In Dart, it is up to you to make sure you do not directly mutate a capsule's data
 without using one of the side effects (again, more on side effects later).
 
 
@@ -76,15 +76,15 @@ The `CapsuleReader` provides the familiar `use(...)` syntax in Dart and `get(...
   ```
 
   ```rust
-  fn count(_: CapsuleHandle) -> u8 {
+  fn count_capsule(_: CapsuleHandle) -> u8 {
       0
   }
 
-  fn count_plus_one(CapsuleHandle { mut get, .. }: CapsuleHandle) -> u8 {
+  fn count_plus_one_capsule(CapsuleHandle { mut get, .. }: CapsuleHandle) -> u8 {
       // Please note the following distinction in syntax based on toolchain;
-      // the nightly syntax will be used in all remaining examples.
-      // get.get(count) + 1 // Stable Rust syntax
-      get(count) + 1        // Nightly Rust syntax with "better-api" feature
+      // the nightly syntax will be used in all remaining examples for clarity.
+      // get.as_ref(count_capsule) + 1 // Works in stable and nightly
+      get(count_capsule) + 1           // Works in nightly only with "experimental-api" feature
   }
   ```
 </CodeGroup>
@@ -92,7 +92,8 @@ The `CapsuleReader` provides the familiar `use(...)` syntax in Dart and `get(...
 
 ### The `SideEffectRegistrar`
 The `SideEffectRegistrar` provides the familiar set of `use.fooBar()` side effects in Dart 
-and `register(effect1(), effect2())` in Rust. See [the docs on side effects](/core/effects) for more.
+and `register(effect1(), effect2())` in Rust.
+See [the docs on side effects](/core/effects) for more.
 
 
 ## Generic Capsules
@@ -131,7 +132,7 @@ This can lead to some pretty interesting patterns, a (somewhat useless) example 
 
 
 ## Reducing Builds
-Reducing builds is a useful optimization that can be done in rearch through:
+Reducing builds is a useful optimization that can be done in ReArch through:
 1. Conditionally using capsules
 2. Inline capsules
 
@@ -200,17 +201,9 @@ Inline capsules are just regular capsules (which, as a reminder, are just functi
 but are unique because they are *closures*.
 
 <Info>
-  While you can *define* inline capsules in Rust, they are largely useless at the moment,
-  because Rust does not (yet) support negative trait implementations
-  (which are needed in order to support these build optimizations).
-  Thus, the rest of this page only applies to Dart at the moment.
-
-  To give some context to the problem, capsules are not forced to be `PartialEq`,
-  but when a capsule happens to be `PartialEq`,
-  we want to skip rebuilding dependents when `newData == oldData`.
-  I have not yet found a way to do this without negative trait implementations,
-  but if you have an idea, please open a PR!
-  It might be possible via trait upcasting, but I haven't looked into it enough to know for sure.
+  While you can *define* inline capsules in Rust, I have not found a useful application of them yet,
+  mostly because ReArch for Rust does not have an accompanying UI framework.
+  Thus, the rest of this section only applies to Dart at the moment.
 </Info>
 
 There are two ways to create inline capsules:
@@ -285,3 +278,6 @@ you must be careful to not use any side effects (`use.fooBar()`) or *you will ca
 Thus, it is considered to be a best practice to prevent yourself from using side effects
 by declaring the parameter type as `CapsuleReader` instead of letting it get inferred
 as a `CapsuleHandle` (which is what happens if you do not explicitly specify `CapsuleReader`).
+You can actually use this same pattern for your regular capsules too
+if you wish to declare that it cannot use side effects (i.e., is an idempotent capsule),
+but that is not documented elsewhere in order to not confuse beginners.
