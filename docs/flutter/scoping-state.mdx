@@ -1,13 +1,16 @@
 ---
 title: Scoping State
-description: Learn how to scope state in rearch.
+description: Learn how to scope state in ReArch.
 ---
 
 # Scoping State 
-This page is a WIP, but you can use a RearchConsumer in conjunction with InheritedWidget.
+This page is a WIP, but you can create a new `RearchConsumer` in conjunction
+with a new `InheritedWidget`.
+You make a new `RearchConsumer` that manages some state (or takes in some data via its constructor)
+and then pass this state into a new `InheritedWidget` to provide said state to all descendants.
 
 Something like the following macro is planned that will kill
-all of the RearchConsumer + InheritedWidget boilerplate:
+all of the `RearchConsumer` + `InheritedWidget` boilerplate:
 
 ```dart
 @inheritedRearchWidget
