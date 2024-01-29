@@ -1,11 +1,11 @@
 ---
 title: Side Effects
-description: Learn the basics behind side effects in rearch.
+description: Learn the basics behind side effects in ReArch.
 ---
 
 # Side Effects
-Although side effects may seem confusing at first, they are the reason rearch is so unique.
-Whenever some feature is not available in the core rearch implementation,
+Although side effects may seem confusing at first, they are the reason ReArch is so unique.
+Whenever some feature is not available in the core ReArch implementation,
 chances are you just need to create a side effect to add it!
 
 Side effects in the Dart/Flutter implementation are heavily inspired by React hooks,
@@ -19,7 +19,7 @@ In the Rust implementation, side effects are largely a new paradigm, and may tak
   feel free to skip it and go straight to the examples if you wish.
 </Info>
 
-In rearch, side effects are modeled as:
+In ReArch, side effects are modeled as:
 - Some private mutable data (only accessible to the side effect itself)
 - A way to mutate that private data *outside* of the build (which in turn triggers rebuilds)
 
@@ -44,7 +44,7 @@ This enables side effects to have their own private side effect(s), enabling eas
   In Rust, do not conditionally call `register(effect())`!
   Doing so is considered an error;
   *never* wrap `use.fooBar()`/`register(effect())` in an `if` statement.
-  Rearch will likely throw a fit as soon as you mess this up, but it can't catch 100% of cases.
+  ReArch will likely throw a fit as soon as you mess this up, but it can't catch 100% of cases.
 </Error>
 
 Here is a quick example showing how to use a few side effects.
@@ -71,7 +71,7 @@ See the side effect library and api documentation for more information.
   ```rust
   // Capsule that counts the number of times it builds
   fn count_builds(CapsuleHandle { mut get, register }: CapsuleHandle) -> u64 {
-      let is_first_build = register(side_effects::is_first_build());
+      let is_first_build = register(effects::is_first_build());
       if is_first_build {
           1
       } else {
@@ -81,7 +81,7 @@ See the side effect library and api documentation for more information.
 
   // Alternative way to write a capsule that counts the number of times it builds
   fn alt_count_builds(CapsuleHandle { register, .. }: CapsuleHandle) -> u64 {
-      let builds = register(side_effects::value(0));
+      let builds = register(effects::value::<MutRef<_>>(0));
       *builds += 1;
       *builds
   }
@@ -103,6 +103,119 @@ although it is appropriate to make `WidgetSideEffect`s:
 (say, for an `AnimationController`).
 
 See [the builtin `WidgetSideEffect`s](https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html).
+
+
+## Transactions
+Multiple side effects can be updated in one batch rebuild via _side effect transactions_.
+This can be helpful when you wish to update _unrelated_ data that needs to be updated together.
+Often, _this is not needed_. However, it can be helpful in some select situations
+(such as a "reset" [action capsule](/paradigms/actions) that resets the state of several capsules at once).
+
+<Warning>
+  _Do not_ use transactions to update _related or derived_ states!
+  For example, _do not_ make a capsule for a list of items
+  paired with another capsule that stores the state of a set of the current "favorite" items.
+  Doing so distributes one state across multiple sources, which is an anti-pattern in general. 
+  Instead, you should have a `List<(Item, FavoritedStatus)>` or similar that uses data composition.
+  Then, you can put your derived states in other capsules (such as a list of only favorited items).
+</Warning>
+
+Only one side effect transaction may run at a time, but transactions may be _nested_ such that
+you can run multiple other smaller transactions within the context of one overarching transaction.
+For example, two different capsules can update a few other capsules in their own transactions,
+and then another capsule can come along and aggregate both of those capsules in its own transaction!
+This allows each capsule to focus solely on the data it operates on (and nothing more),
+rather than worrying about where/how it is used.
+
+<Info>
+  If you are familiar with them, reentrant mutexes share some similarities to nested transactions;
+  in fact, transactions are on top of a reentrant mutex in ReArch for Rust!
+</Info>
+
+Without further ado, here is an example properly using transactions:
+<CodeGroup title="Using side effect transactions">
+  ```dart
+  (
+    int, {
+    void Function() increment,
+    void Function() reset,
+  }) fooCapsule(CapsuleHandle use) {
+    final (state, setState) = use.state(0);
+    return (
+      state,
+      increment: () => setState(state + 1),
+      reset: () => setState(0)
+    );
+  }
+
+  (
+    int, {
+    void Function() increment,
+    void Function() reset,
+  }) barCapsule(CapsuleHandle use) {
+    final (state, setState) = use.state(0);
+    return (
+      state,
+      increment: () => setState(state + 1),
+      reset: () => setState(0)
+    );
+  }
+
+  void Function() resetAction(CapsuleHandle use) {
+    final resets = [use(fooCapsule).reset, use(barCapsule).reset];
+    final runTxn = use.transactionRunner();
+    return () => runTxn(() {
+          for (final reset in resets) {
+            reset();
+          }
+        });
+  }
+  ```
+
+  ```rust
+  fn foo_capsule(
+      CapsuleHandle { register, .. }: CapsuleHandle,
+  ) -> (u32, impl CData + Fn(), impl CData + Fn()) {
+      let (state, set_state) = register(effects::state::<Cloned<_>>(0));
+      (
+          state,
+          {
+              let set_state = set_state.clone();
+              move || set_state(state + 1)
+          },
+          move || set_state(0),
+      )
+  }
+
+  fn bar_capsule(
+      CapsuleHandle { register, .. }: CapsuleHandle,
+  ) -> (u32, impl CData + Fn(), impl CData + Fn()) {
+      let (state, set_state) = register(effects::state::<Cloned<_>>(0));
+      (
+          state,
+          {
+              let set_state = set_state.clone();
+              move || set_state(state + 1)
+          },
+          move || set_state(0),
+      )
+  }
+
+  fn reset_action(CapsuleHandle { mut get, register }: CapsuleHandle) -> impl CData + Fn() {
+      let reset_foo = get(foo_capsule).2;
+      let reset_bar = get(bar_capsule).2;
+      let run_txn = register.raw(()).2; // third element of returned tuple is an Fn that runs txns
+      move || {
+          let reset_foo = reset_foo.clone();
+          let reset_bar = reset_bar.clone();
+          run_txn(Box::new(move || {
+              reset_foo();
+              reset_bar();
+          }));
+      }
+  }
+  ```
+</CodeGroup>
 
 
 ## Side Effect Library
