@@ -1,6 +1,6 @@
 ---
 title: Actions
-description: Learn the basics behind actions in rearch.
+description: Learn the basics behind actions in ReArch.
 ---
 
 # Actions
@@ -25,15 +25,14 @@ Here's the overused count example, but with an action capsule exposing the incre
   ```
 
   ```rust
-  fn count(CapsuleHandle { register, .. }: CapsuleHandle) -> (u32, impl Fn() + Clone + Send + Sync) {
-      let (state, set_state) = register(side_effects::state(0));
-      let state = *state;
-      let increment = move || set_state(state + 1);
-      (state, increment)
+  fn count_manager(CapsuleHandle { register, .. }: CapsuleHandle) -> (u32, impl CData + Fn()) {
+      let (count, set_count) = register(effects::state::<Cloned<_>>(0));
+      let increment = move || set_count(state + 1);
+      (count, increment)
   }
-  
-  fn increment(CapsuleHandle { mut get, .. }: CapsuleHandle) -> impl Fn() + Clone + Send + Sync {
-      get(count).1
+
+  fn increment_count_action(CapsuleHandle { mut get, .. }: CapsuleHandle) -> impl CData + Fn() {
+      get(count_manager).1
   }
   ```
 </CodeGroup>
@@ -41,7 +40,7 @@ Here's the overused count example, but with an action capsule exposing the incre
 ## Practical Example
 > Some years ago, I wrote an invoicing/billing application for a financial firm using Rx
 > and some other technologies.
-> I recently had to update the application and decided it'd be a great test of rearch.
+> I recently had to update the application and decided it'd be a great test of ReArch.
 > I created this particular paradigm, amongst several others, during that rewrite.
 
 Take the following (simplified) requirements for a billing application:

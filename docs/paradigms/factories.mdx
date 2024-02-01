@@ -1,19 +1,24 @@
 ---
 title: Factories
-description: Learn the basics behind factories in rearch.
+description: Learn the basics behind factories in ReArch.
 ---
 
 # Factories
-Factories (sometimes called factory capsules) are not unique to rearch at all;
-in fact, rearch just borrows the concept from OOP!
+Factories (sometimes called factory capsules) are not unique to ReArch at all;
+in fact, ReArch just borrows the concept from OOP!
 From [Wikipedia](https://en.wikipedia.org/wiki/Factory_(object-oriented_programming)):
 > In object-oriented programming, a factory is an object for creating other objects;
 formally, it is a function or method that returns objects of a varying prototype or class
 
-In rearch, factories are just capsules that create objects on the fly and can consume some additional non-capsule parameters.
-Although factories may seem complex at first, they actually just boil down to some very straight forward syntactic sugar.
+In ReArch, factories are just capsules that create objects on the fly
+and can consume some additional non-capsule parameters.
+Although factories may seem complex at first,
+they actually just boil down to some very straight forward syntactic sugar.
 
-<Info>If you are coming from Riverpod, factories solve problems similar to those covered by Family & AutoDispose providers.</Info>
+<Info>
+  If you are coming from Riverpod,
+  factories solve problems similar to those covered by Family & AutoDispose providers.
+</Info>
 
 
 ## An Example
@@ -62,8 +67,7 @@ Although factories may seem complex at first, they actually just boil down to so
 
   fn my_obj_factory(
       CapsuleHandle { mut get, .. }: CapsuleHandle,
-      // Note: in the line below, `Clone + Send + Sync` is on `impl Fn`, *not* `MyObject`.
-  ) -> impl Fn(String, i8) -> MyObject + Clone + Send + Sync {
+  ) -> impl CData + Fn(String, i8) -> MyObject {
     let dep1 = get(dep1);
     let dep2 = get(dep2);
     move |dep3, dep4| MyObject::new(dep1, dep2, dep3, dep4)

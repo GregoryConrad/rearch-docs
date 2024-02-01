@@ -1,6 +1,6 @@
 ---
 title: Async Capsules
-description: Learn the basics behind asynchronous capsules in rearch.
+description: Learn the basics behind asynchronous capsules in ReArch.
 ---
 
 # Async Capsules
@@ -56,8 +56,7 @@ which is exactly what we need here.
 
   ```rust
   // There are a few different ways to do this, but the following is the most standard way.
-  // This requires the tokio-side-effects feature to be enabled.
-  // TODO
+  // TODO copy example from rearch-tokio
   ```
 </CodeGroup>
 
@@ -79,6 +78,10 @@ we need a slightly different approach which will swap in a new future.
 }
 ```
 
+There is also an equivalent for just invalidation: `invalidatableFuture`.
+The difference is that `invalidatableFuture` only executes a new future when it is currently in use,
+whereas `refreshableFuture` will always execute a new future when refreshed.
+
 
 ## What is `AsyncValue`/`AsyncState`?
 You may notice that when applying the asynchronous side effects,
@@ -86,7 +89,7 @@ you are given data of type `AsyncValue<T>`/`AsyncState<T>`.
 
 This is entirely intentional;
 it allows you to handle the current state of asynchronous code synchronously,
-which is needed as rearch *builds are completely synchronous* and (in Dart) *cannot throw*.
+which is needed as ReArch *builds are completely synchronous* and (in Dart) *cannot throw*.
 As such, it is highly recommended that you learn how to properly work with `AsyncValue`/`AsyncState`
 instead of trying to avoid it.
 
@@ -101,8 +104,7 @@ See `AsyncValue`'s API docs for more.
 
 
 ### Rust's `AsyncState`
-`AsyncState`s represent one of three states for futures and mutations:
-- Future has not yet been set (`Idle`)
+`AsyncState`s represent one of two states for futures:
 - Future is still loading and has not emitted anything (`Loading`)
 - Future emitted data (`Complete`)
 

@@ -1,10 +1,10 @@
 ---
 title: Containers
-description: Learn the basics behind containers in rearch.
+description: Learn the basics behind containers in ReArch.
 ---
 
 # Containers
-After capsules, `Container`s are the next high-level piece you should understand in rearch.
+After capsules, `Container`s are the next high-level piece you should understand in ReArch.
 Containers get their name from the fact that they "contain" capsules' data.
 Even if you exclusively use Flutter with `flutter_rearch`
 (which provides the `RearchBootstrapper` widget over using containers directly),
@@ -39,12 +39,12 @@ They tend to solve very niche/advanced use cases.
   ```
 
   ```rust
-  fn count(_: CapsuleHandle) -> u8 {
+  fn count_capsule(_: CapsuleHandle) -> u8 {
       0
   }
 
-  fn count_plus_one(CapsuleHandle { mut get, .. }: CapsuleHandle) -> u8 {
-      get(count) + 1
+  fn count_plus_one_capsule(CapsuleHandle { mut get, .. }: CapsuleHandle) -> u8 {
+      get(count_capsule) + 1
   }
 
   let container = Container::new();
@@ -59,8 +59,8 @@ This ensures a *consistent* read amongst capsules, in addition to reducing overh
 Take the following scenario:
 
 ```rust
-let count = container.read(count);
-let count_plus_one = container.read(count_plus_one);
+let count = container.read(count_capsule);
+let count_plus_one = container.read(count_plus_one_capsule);
 ```
 
 Say another thread increments the container's count after that first line;
@@ -74,8 +74,6 @@ Also of importance:
 - Containers have cheap clones (`Arc` is used internally), so clone away
 - Containers are thread safe and are meant to be shared across threads
 - Containers are lock free and are *highly* readable, with writes blocked by a `Mutex`
-  - I hit >20 million *reads* per second on my laptop, and that's *per core* (scaling linearly)
-  - I hit a limit of ~1.3 million *writes* per second on my laptop (capsule data updates)
 
 
 ## Listening to Changes
@@ -91,11 +89,12 @@ To *temporarily* listen to capsules, see the following example.
 
   ```rust
   let container = Container::new();
-  let handle = container.listen(|get| {
+  let handle = container.listen(|| (), |get, ()| {
       println!("{}", get(foo_bar_capsule));
   });
 
-  drop(handle); // or just let the handle be dropped at the end of its scope
+  // When you no longer need to listen to changes:
+  drop(handle);
   ```
 </CodeGroup>
 
@@ -123,7 +122,7 @@ and read it once to ensure it has been initialized and is listening.
   fn listener(CapsuleHandle { mut get, register }: CapsuleHandle) {
       // as_listener is a no-op side effect that you can use
       // to declare capsules as listeners
-      register(as_listener());
+      register(effects::as_listener());
 
       // Listen to data like normal
       println!("{}", get(foo_bar_capsule));
