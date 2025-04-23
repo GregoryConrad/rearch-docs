@@ -1,71 +1,69 @@
 ---
 title: ReArch
-description: The documentation homepage of ReArch.
+description: صفحه اصلی مستندات ReArch.
 ---
 
 # ReArch
 
 <p align="center">
-<img src="https://github.com/GregoryConrad/rearch-docs/blob/main/assets/banner.jpg?raw=true" width="100%" alt="Banner" />
+<img src="https://github.com/GregoryConrad/rearch-docs/blob/main/assets/banner.jpg?raw=true" width="100%" alt="بنر" />
 </p>
 
 <p align="center">
-ReArch = re-imagined approach to application design and architecture
+ReArch = رویکرد بازتصور شده به طراحی و معماری اپلیکیشن‌ها
 
-> We must state definitions and provide for priorities and descriptions of data.
-> We must state relationships, not procedures.
+> ما باید تعاریف رو بیان کنیم و اولویت‌ها و توضیحات داده‌ها رو فراهم کنیم.  
+> ما باید روابط رو بیان کنیم، نه رویه‌ها.  
 >
-> -- Grace Murray Hopper, _Management and the Computer of the Future_ (1962)
+> -- گریس موری هاپر، _مدیریت و کامپیوتر آینده_ (۱۹۶۲)
 </p>
 
 ---
 
+## ویژگی‌ها
+به‌طور خاص، ReArch یه راه‌حل جدید برای این‌هاست:  
+- ⚡️ مدیریت حالت  
+- 🧮 محاسبات افزایشی  
+- 🧱 مهندسی نرم‌افزار مبتنی بر کامپوننت  
 
-## Features
-Specifically, ReArch is a novel solution to:
-- ⚡️ State Management
-- 🧮 Incremental Computation
-- 🧱 Component-Based Software Engineering
+و همراه با این‌ها، این امکانات رو هم داره:  
+- واکنش‌پذیری از طریق کد اعلانی (declarative)  
+- اتصال سست (loose coupling) و تست‌پذیری بالا  
+- ترکیب‌پذیری در سطح اپلیکیشن از طریق رویکرد تابعی به وارونگی وابستگی  
+- [ترکیب ویژگی‌ها از طریق _اثرات جانبی_](https://blog.gsconrad.com/2023/12/22/the-problem-with-state-management.html)
 
-And with those, come:
-- Reactivity through declarative code
-- Loose coupling and high testability
-- App-level composability via a functional approach to dependency inversion
-- [Feature composition through _side effects_](https://blog.gsconrad.com/2023/12/22/the-problem-with-state-management.html)
-
-
-## In a Nutshell 
-Define your "capsules" (en-_capsulated_ pieces of state) at the top level:
-<CodeGroup title="Defining capsules">
+## به‌طور خلاصه
+کپسول‌هات (قطعات _کپسوله‌شده_ از حالت) رو توی سطح بالا تعریف کن:
+<CodeGroup title="تعریف کپسول‌ها">
   ```dart
-  // Capsules are simply functions that consume a CapsuleHandle.
-  // The CapsuleHandle lets you get the data of other capsules,
-  // in addition to using a large variety of side effects.
+  // کپسول‌ها به‌سادگی توابعی هستن که یه CapsuleHandle می‌گیرن.  
+  // CapsuleHandle بهت اجازه می‌ده داده‌های کپسول‌های دیگه رو بگیری،  
+  // و علاوه بر اون از یه سری اثرات جانبی متنوع هم استفاده کنی.  
 
-  // This particular capsule manages a count from a classic example counter app,
-  // using the state side effect.
+  // این کپسول خاص یه شمارش رو از یه اپلیکیشن نمونه شمارش کلاسیک مدیریت می‌کنه،  
+  // و از اثر جانبی state استفاده می‌کنه.  
   (int, void Function()) countManager(CapsuleHandle use) {
     final (count, setCount) = use.state(0);
     return (count, () => setCount(count + 1));
   }
 
-  // This capsule provides the current count, plus one.
+  // این کپسول مقدار فعلی شمارش رو به علاوه یک برمی‌گردونه.  
   int countPlusOneCapsule(CapsuleHandle use) => use(countManager).$1 + 1;
   ```
 
   ```rust
-  // Capsules are simply functions that consume a CapsuleHandle.
-  // The CapsuleHandle lets you get the data of other capsules,
-  // in addition to using a large variety of side effects.
+  // کپسول‌ها به‌سادگی توابعی هستن که یه CapsuleHandle می‌گیرن.  
+  // CapsuleHandle بهت اجازه می‌ده داده‌های کپسول‌های دیگه رو بگیری،  
+  // و علاوه بر اون از یه سری اثرات جانبی متنوع هم استفاده کنی.  
 
-  // This capsule provides a count and a way to increment that count.
+  // این کپسول یه شمارش و یه راه برای افزایش اون شمارش رو فراهم می‌کنه.  
   fn count_manager(CapsuleHandle { register, .. }: CapsuleHandle) -> (u8, impl CData + Fn()) {
       let (count, set_count) = register(effects::state::<Cloned<_>>(0));
       let increment_count = move || set_count(count + 1);
       (count, increment_count)
   }
 
-  // This capsule provides the count, plus one.
+  // این کپسول شمارش رو به علاوه یک برمی‌گردونه.  
   fn count_plus_one_capsule(CapsuleHandle { mut get, .. }: CapsuleHandle) -> u8 {
       let (count, _increment_count) = get(count_manager);
       count + 1
