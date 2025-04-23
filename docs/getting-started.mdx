@@ -1,24 +1,24 @@
 ---
-title: Getting Started
-description: Getting started and set up instructions with ReArch.
+title: شروع کار
+description: دستورالعمل‌های شروع کار و راه‌اندازی با ReArch.
 ---
 
-# Getting Started
+# شروع کار
 
 <Tabs
   values={[
-    { label: 'With Flutter', value: 'flutter' },
-    { label: 'Dart Only', value: 'dart' },
-    { label: 'Rust', value: 'rust' },
+    { label: 'با فلاتر', value: 'flutter' },
+    { label: 'فقط دارت', value: 'dart' },
+    { label: 'راست (Rust)', value: 'rust' },
   ]}
 >
   <TabItem value="flutter">
-    Simply run:
+    کافیه این دستور رو اجرا کنی:  
     `flutter pub add rearch flutter_rearch`
     
-    And (*this part is important*), wrap your application widget
-    with a `RearchBootstrapper` widget in your `main.dart`.
-    ```dart title="main.dart modifications"
+    و (*این بخش خیلی مهمه*)، ویجت اپلیکیشنت رو  
+    با یه ویجت `RearchBootstrapper` توی `main.dart` بپیچی.  
+    ```dart title="تغییرات main.dart"
     void main() {
       runApp(RearchBootstrapper(
         child: MaterialApp(...),
@@ -27,32 +27,32 @@ description: Getting started and set up instructions with ReArch.
     ```
   </TabItem>
   <TabItem value="dart">
-    Simply run:
+    کافیه این دستور رو اجرا کنی:  
     `dart pub add rearch`
     
-    And then just create one container for your application.
-    ```dart title="Creating a capsule container"
+    و بعد فقط یه کانتینر برای اپلیکیشنت بسازی.  
+    ```dart title="ایجاد یه کانتینر کپسول"
     void main() {
       final container = CapsuleContainer();
-      // Use the container.
+      // از کانتینر استفاده کن.
     }
     ```
   </TabItem>
   <TabItem value="rust">
-    Simply run:
+    کافیه این دستور رو اجرا کنی:  
     `cargo add rearch rearch-effects`
     
-    And then just create one container for your application.
-    ```rust title="Creating a container"
+    و بعد فقط یه کانتینر برای اپلیکیشنت بسازی.  
+    ```rust title="ایجاد یه کانتینر"
     use rearch::*;
     use rearch_effects as effects;
 
     fn main() {
         let container = Container::new();
-        // Use the container.
+        // از کانتینر استفاده کن.
     }
     ```
   </TabItem>
 </Tabs>
 
-Now you're all set to follow the rest of the docs!
+حالا آماده‌ای که بقیه مستندات رو دنبال کنی!
