@@ -1,14 +1,14 @@
 ---
-title: Testing/Mocks
-description: Copy-pasteable solution to testing/using mocks in ReArch.
+title: تست/ماک‌ها
+description: راه‌حل قابل کپی-پیست برای تست/استفاده از ماک‌ها توی ReArch.
 ---
 
-# Testing/Mocks
-Also see the full, runnable example at the bottom of this page.
+# تست/ماک‌ها
+یه مثال کامل و قابل‌اجرا رو هم می‌تونی پایین این صفحه ببینی.
 
-```dart title="Mocking capsules in Dart tests"
-// I often create useFooBar() methods for disposable resources in my Dart/Flutter tests.
-// They compose very similarly to regular side effects.
+```dart title="ماک کردن کپسول‌ها توی تست‌های دارت"
+// من اغلب متدهای useFooBar() رو برای منابع قابل‌حذف توی تست‌های دارت/فلاتر درست می‌کنم.  
+// اونا خیلی شبیه اثرات جانبی معمولی ترکیب می‌شن.  
 MockableContainer useContainer() {
   final container = MockableContainer();
   addTearDown(container.dispose);
@@ -22,17 +22,17 @@ MockableContainer useContainer() {
   return (container, mockClient);
 }
 
-/// Mocked [http.Client] using `mocktail`
+/// [http.Client] ماک‌شده با استفاده از `mocktail`
 class MockClient extends Mock implements http.Client {}
 
 void main() {
-  test('fetchWeatherAction returns correct Weather', () async {
+  test('fetchWeatherAction یه آب‌وهوای درست برمی‌گردونه', () async {
     final (container, mockClient) = useMockedClientContainer();
 
     const latitude = 123.0;
     const longitude = 321.0;
     const temperature = 20.0;
-    const weatherCode = 1.0; // = cloudy
+    const weatherCode = 1.0; // = ابری  
     Future<http.Response> expectedCall() => mockClient.get(
           Uri.https('api.open-meteo.com', '/v1/forecast', {
             'latitude': '$latitude',
@@ -52,7 +52,7 @@ void main() {
       ),
     );
 
-    // fetchWeatherAction will use the `MockClient` we mocked above
+    // fetchWeatherAction از `MockClient` که بالا ماک کردیم استفاده می‌کنه  
     final actualWeather = await container.read(fetchWeatherAction)(
       latitude: latitude,
       longitude: longitude,
