@@ -1,26 +1,26 @@
 ---
-title: Infinite Scrolling
-description: Learn how to create infintely scrolling lists in ReArch.
+title: اسکرول بی‌نهایت
+description: یاد بگیر چطور لیست‌های با اسکرول بی‌نهایت توی ReArch بسازی.
 ---
 
-# Infinite Scrolling
-Infinite scrolling is actually *really* easy to do in ReArch!
-ReArch gives you the flexibility to do it in almost any way you choose,
-but here are the two standard ways:
-1. Use a factory and let Flutter handle the disposal of out-of-view widgets (preferred).
-You can easily customize how long widgets are kept alive with `use.automaticKeepAlive`!
-2. Keep your own cache and grow it as the user scrolls (not as recommended).
-Whenever new widgets come into view, they add elements to a capsule of type `List<Future<T>>`.
+# اسکرول بی‌نهایت
+اسکرول بی‌نهایت توی ReArch در واقع *خیلی* ساده‌ست!  
+ReArch بهت انعطاف‌پذیری می‌ده که تقریباً به هر شکلی که بخوای این کار رو بکنی،  
+ولی اینجا دو روش استاندارد رو داریم:  
+1. از یه کارخانه استفاده کن و بذار فلاتر حذف ویجت‌های خارج از دید رو مدیریت کنه (روش پیشنهادی).  
+می‌تونی به‌سادگی با `use.automaticKeepAlive` تنظیم کنی که ویجت‌ها چقدر زنده بمونن!  
+2. یه کش خودت نگه دار و با اسکرول کاربر، اون رو بزرگ‌تر کن (زیاد توصیه نمی‌شه).  
+هر وقت ویجت‌های جدید توی دید بیان، اونا عناصر رو به یه کپسول از نوع `List<Future<T>>` اضافه می‌کنن.
 
-Both approaches described above utilize a more advanced technique
-described in [Reducing Builds](/core/capsules#reducing-builds).
+هر دو روش بالا از یه تکنیک پیشرفته‌تر استفاده می‌کنن  
+که توی [کاهش بازسازی‌ها](/core/capsules#reducing-builds) توضیح داده شده.
 
-## Example
-Here is a quick example that showcases the first option above.
+## مثال
+اینجا یه مثال سریع داریم که گزینه اول بالا رو نشون می‌ده.
 
 ```dart
-/// A factory capsule that returns the input data after a brief delay.
-/// This also doubles as an example of a generic capsule.
+/// یه کپسول کارخانه که داده ورودی رو بعد از یه تأخیر کوتاه برمی‌گردونه.  
+/// این همچنین یه مثال از یه کپسول عمومیه.  
 Future<T> Function(T) delayedEchoFactory<T>(CapsuleHandle _) {
   return (data) => Future.delayed(const Duration(seconds: 1), () => data);
 }
@@ -39,7 +39,7 @@ class InfiniteList extends StatelessWidget {
 class InfiniteScrollItem extends RearchConsumer {
   const InfiniteScrollItem({required this.index, super.key});
 
-  /// The index of this item.
+  /// شاخص این آیتم.  
   final int index;
 
   @override
@@ -72,6 +72,6 @@ class InfiniteScrollItem extends RearchConsumer {
 }
 ```
 
-And here's a complete, runnable version of the above.
+و اینجا یه نسخه کامل و قابل‌اجرا از مثال بالا رو داریم.
 
 <Zapp id="github/GregoryConrad/rearch-dart/tree/main/examples/infinite_scroll" />
