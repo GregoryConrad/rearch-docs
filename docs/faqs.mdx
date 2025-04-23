@@ -1,32 +1,30 @@
 ---
-title: Frequently Asked Questions
-description: Get answers to some frequently asked questions in ReArch.
+title: سؤالات متداول
+description: پاسخ سؤالات متداول درباره ReArch رو اینجا پیدا کن.
 ---
 
-# Frequently Asked Questions
-If you have a question, please make a discussion post and I may post the outcome here!
-- [Rust Discussion Posts](https://github.com/GregoryConrad/rearch-rs/discussions)
-- [Dart/Flutter Discussion Posts](https://github.com/GregoryConrad/rearch-dart/discussions)
+# سؤالات متداول
+اگه سؤالی داری، لطفاً یه پست توی بخش بحث‌ها بساز و ممکنه نتیجه‌ش رو اینجا بذارم!  
+- [پست‌های بحث Rust](https://github.com/GregoryConrad/rearch-rs/discussions)  
+- [پست‌های بحث Dart/Flutter](https://github.com/GregoryConrad/rearch-dart/discussions)
 
+## آیا اثرات جانبی حالت باعث بازسازی داخلی می‌شن؟
+بله! به‌عنوان یه قانون کلی،  
+هر اثر جانبی‌ای که یه حالت *خارجی نسبت به ساخت (build)* رو تغییر بده  
+و بعد *اون حالت* یا یه مقدار وابسته به اون حالت رو برگردونه،  
+احتمالاً باعث بازسازی می‌شه.  
+به‌عنوان مثال، `setState` یه مقدار خارجی نسبت به خود ساخت کپسول رو آپدیت می‌کنه (چون یه callback هست)،  
+و `use.state` هم `state` رو برمی‌گردونه، پس بازسازی رو فعال می‌کنه.  
+در حالی که `use.memo` یه مقدار حالت رو آپدیت می‌کنه، ولی این کار داخل خود ساخت انجام می‌شه،  
+پس بازسازی‌ای فعال نمی‌کنه.
 
-## Do state side effects trigger rebuilds internally?
-Yes! As a general rule of thumb,
-any side effect that mutates some state _external to the build_
-and then _returns that state_ or a value dependent upon that state
-will likely trigger rebuilds.
-As an example, `setState` updates a value extenal to the capsule build itself (it is a callback),
-and `use.state` returns `state`, so it triggers a rebuild.
-While `use.memo` updates a state value, it is done within the build itself,
-so it doesn't trigger any rebuilds.
-
-
-## Does `rebuild()` trigger rebuilds immediately? Or can you call it back-to-back?
-For capsules: yes.
-Calling `rebuild()` multiple times in a row will trigger multiple rebuilds.
-This is also true for calling different `setState`s or similar back-to-back;
-multiple rebuilds are triggered.
-As this is often undesirable, ReArch has "side effect transactions"
-that can run a bunch of side effects in one batch to result in one rebuild.
+## آیا `rebuild()` بازسازی رو فوراً فعال می‌کنه؟ یا می‌تونی پشت سر هم صداش کنی؟
+برای کپسول‌ها: بله.  
+اگه چند بار پشت سر هم `rebuild()` رو فراخوانی کنی، چند بازسازی فعال می‌شه.  
+این برای فراخوانی‌های پشت سر هم `setState` یا چیزهای مشابه هم صدق می‌کنه؛  
+چند بازسازی فعال می‌شه.  
+از اونجایی که این معمولاً مطلوب نیست، ReArch "تراکنش‌های اثر جانبی" داره  
+که می‌تونه یه سری اثر جانبی رو توی یه دسته (batch) اجرا کنه تا فقط یه بازسازی انجام بشه.
 ```dart
 final runTransaction = use.transactionRunner();
 void updateMultipleEffectsInOneBuild() {
@@ -38,22 +36,22 @@ void updateMultipleEffectsInOneBuild() {
   });
 }
 ```
-For Flutter widgets: no.
-Rebuilds are automatically batched together on the next frame via flutter’s build scheduler
-(ReArch internally calls
-[`Element.markNeedsBuild`](https://api.flutter.dev/flutter/widgets/Element/markNeedsBuild.html)).
-> You can read more about "side effect transactions" [here](/core/effects).
+برای ویجت‌های فلاتر: خیر.  
+بازسازی‌ها به‌صورت خودکار توی فریم بعدی از طریق زمان‌بند ساخت فلاتر دسته‌بندی می‌شن  
+(ReArch داخلیاً از  
+[`Element.markNeedsBuild`](https://api.flutter.dev/flutter/widgets/Element/markNeedsBuild.html) استفاده می‌کنه).  
+> برای اطلاعات بیشتر درباره "تراکنش‌های اثر جانبی" می‌تونی [اینجا](/core/effects) رو بخونی.
 
+## (Dart/Flutter) هدف از `SideEffectRegistrar.register()` چیه؟
+`use.register()`، همون‌طور که معمولاً دیده می‌شه، برای پیاده‌سازی اثرات جانبی سطح پایین طراحی شده،  
+و به همین دلیل معمولاً لازم نیست مستقیماً ازش استفاده کنی.  
+در واقع، این یه ترکیبیه از یه راه برای دسترسی به دنیای بیرون  
+(از طریق `SideEffectApi`)،  
+به همراه یه راه برای فراخوانی یه تابع خاص *فقط توی اولین ساخت*،  
+که می‌تونه برای نگه داشتن حالت بین ساخت‌ها استفاده بشه.
 
-## (Dart/Flutter) What is the purpose of `SideEffectRegistrar.register()`?
-`use.register()`, as it is often seen, is meant to implement rather low-level side effects,
-and thus you often won't need to use it directly.
-It essentially is a combination of a way to access the outside world
-(via the `SideEffectApi`),
-coupled with a way to call some certain function _only on the first build_,
-which can be used to persist state across builds.
-
-
-## (Dart/Flutter) How can I use ReArch with `fpdart`? Specifically, the `Option`s clash.
-See https://github.com/GregoryConrad/rearch-dart/issues/79#issuecomment-1889770035
-and https://github.com/GregoryConrad/rearch-dart/issues/79#issuecomment-1890421419.
+## (Dart/Flutter) چطور می‌تونم ReArch رو با `fpdart` استفاده کنم؟ به‌خصوص که `Option`ها باهم تداخل دارن.
+به این لینک‌ها نگاه کن:  
+[https://github.com/GregoryConrad/rearch-dart/issues/79#issuecomment-1889770035](https://github.com/GregoryConrad/rearch-dart/issues/79#issuecomment-1889770035)  
+و  
+[https://github.com/GregoryConrad/rearch-dart/issues/79#issuecomment-1890421419](https://github.com/GregoryConrad/rearch-dart/issues/79#issuecomment-1890421419).
