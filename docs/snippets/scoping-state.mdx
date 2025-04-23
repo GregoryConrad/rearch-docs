@@ -1,17 +1,16 @@
 ---
-title: Scoping State (Injections)
-description: Learn how to scope state (via Injections) in ReArch.
+title: محدوده‌بندی حالت (تزریق‌ها)
+description: یاد بگیر چطور حالت رو (از طریق تزریق‌ها) توی ReArch محدوده‌بندی کنی.
 ---
 
-# Scoping State (Injections)
-Scoping state may be achieved via the combination of a `RearchConsumer` in conjunction
-with a new `InheritedWidget`.
+# محدوده‌بندی حالت (تزریق‌ها)
+محدوده‌بندی حالت رو می‌تونی با ترکیب یه `RearchConsumer` و یه `InheritedWidget` جدید به دست بیاری.
 
-However, since that results in a _ton_ of boilerplate,
-ReArch comes with a builtin `RearchInjection` widget that "injects" state into the widget tree:
+اما چون این کار کلی کد تکراری (boilerplate) ایجاد می‌کنه،  
+ReArch یه ویجت داخلی به اسم `RearchInjection` داره که حالت رو توی درخت ویجت "تزریق" می‌کنه:
 
 ```dart
-/// Provides the current count to descendants in the [Widget] tree.
+/// مقدار فعلی شمارش رو به فرزندان توی درخت [Widget] ارائه می‌ده.
 class CountInjection extends RearchInjection<CountInjection, ValueWrapper<int>> {
   const CountInjection({required super.child, super.key});
 
