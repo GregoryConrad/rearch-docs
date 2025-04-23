@@ -1,43 +1,42 @@
 ---
-title: Factories
-description: Learn the basics behind factories in ReArch.
+title: کارخانه‌ها
+description: با اصول اولیه کارخانه‌ها در ReArch آشنا شوید.
 ---
 
-# Factories
-Factories (sometimes called factory capsules) are not unique to ReArch at all;
-in fact, ReArch just borrows the concept from OOP!
-From [Wikipedia](https://en.wikipedia.org/wiki/Factory_(object-oriented_programming)):
-> In object-oriented programming, a factory is an object for creating other objects;
-formally, it is a function or method that returns objects of a varying prototype or class
+# کارخانه‌ها
+کارخانه‌ها (که گاهی بهشون کپسول‌های کارخانه هم می‌گن) اصلاً مختص ReArch نیستن؛  
+در واقع، ReArch این مفهوم رو از برنامه‌نویسی شیءگرا (OOP) قرض گرفته!  
+طبق تعریف [ویکی‌پدیا](https://en.wikipedia.org/wiki/Factory_(object-oriented_programming)):  
+> در برنامه‌نویسی شیءگرا، کارخانه یه شیء برای ساختن اشیای دیگه‌ست؛  
+به‌صورت رسمی، یه تابع یا متدیه که اشیایی با پروتوتایپ یا کلاس متغیر برمی‌گردونه.
 
-In ReArch, factories are just capsules that create objects on the fly
-and can consume some additional non-capsule parameters.
-Although factories may seem complex at first,
-they actually just boil down to some very straight forward syntactic sugar.
+توی ReArch، کارخانه‌ها فقط کپسول‌هایی هستن که اشیا رو به‌صورت آنی (on-the-fly) می‌سازن  
+و می‌تونن یه سری پارامتر غیرکپسولی اضافی هم بگیرن.  
+هرچند کارخانه‌ها ممکنه توی نگاه اول پیچیده به نظر بیان،  
+ولی در واقع فقط یه نوع شکر نحوی (syntactic sugar) ساده هستن.
 
 <Info>
-  If you are coming from Riverpod,
-  factories solve problems similar to those covered by Family & AutoDispose providers.
+  اگه قبلاً با Riverpod کار کردی،  
+  کارخانه‌ها توی ReArch مشکلات مشابهی رو که Family و AutoDispose providerها حل می‌کنن، برطرف می‌کنن.
 </Info>
 
-
-## An Example
-<CodeGroup title="Example Factory Capsule">
+## یه مثال
+<CodeGroup title="مثال کپسول کارخانه">
   ```dart
   int dependency1Capsule(CapsuleHandle _) => 0;
-  String dependency2Capsule(CapsuleHandle _) => 'hello world!';
+  String dependency2Capsule(CapsuleHandle _) => 'سلام دنیا!';
 
   MyObject Function(String, int) myObjectFactory(CapsuleHandle use) {
-    // Notice how we only call `use` *before returning the factory closure*;
-    // this is important, as you cannot call `use` across an asynchronous gap.
-    // In other words, *DO NOT CALL USE WITHIN THE FACTORY BODY ITSELF*.
+    // توجه کن که ما فقط قبل از برگردوندن closure کارخانه از `use` استفاده می‌کنیم؛  
+    // این مهمه، چون نمی‌تونی `use` رو توی یه فاصله زمانی ناهمزمان (asynchronous gap) فراخوانی کنی.  
+    // به عبارت دیگه، *توی بدنه خود کارخانه از USE استفاده نکن*.  
     final dep1 = use(dependency1Capsule);
     final dep2 = use(dependency2Capsule);
     return (dep3, dep4) => MyObject(dep1, dep2, dep3, dep4);
   }
 
   void usesFactoryCapsule(CapsuleHandle use) {
-    final MyObject obj = use(myObjectFactory)('some string', 1234);
+    final MyObject obj = use(myObjectFactory)('یه رشته', 1234);
     obj.doSomething();
   }
   ```
@@ -47,7 +46,7 @@ they actually just boil down to some very straight forward syntactic sugar.
       0
   }
   fn dep2(_: CapsuleHandle) -> &'static str {
-      "hello world!"
+      "سلام دنیا!"
   }
 
   fn my_obj_factory(
@@ -59,57 +58,56 @@ they actually just boil down to some very straight forward syntactic sugar.
   }
 
   fn uses_factory(CapsuleHandle { mut get, .. }: CapsuleHandle) {
-    let obj: MyObject = get(my_obj_factory)("some string".to_owned(), 1234);
+    let obj: MyObject = get(my_obj_factory)("یه رشته".to_owned(), 1234);
     obj.do_something();
   }
   ```
 </CodeGroup>
 
 <Warning>
-  Just like in capsules, factories are recreated whenever their dependency capsule(s) change,
-  and anything consuming the factory will be given a new instance of the factory!
-  In most situations, you will want to create a new instance of any factory-created objects
-  whenever the factory instance itself changes.
+  درست مثل کپسول‌ها، کارخانه‌ها هر وقت کپسول‌های وابستشون تغییر کنن، دوباره ساخته می‌شن،  
+  و هر چیزی که از کارخانه استفاده می‌کنه، یه نمونه جدید از کارخانه می‌گیره!  
+  توی بیشتر موقعیت‌ها، بهتره هر وقت خود نمونه کارخانه تغییر می‌کنه،  
+  یه نمونه جدید از اشیایی که کارخانه ساخته هم بسازی.
 </Warning>
 
-
-## Caching Created Objects
+## کش کردن اشیای ساخته‌شده
 <Info>
-  Currently, this section only provides examples using the Dart implementation,
-  since caching factory-created objects is often not needed and is not as trivial in Rust.
-  (Although if you do need to, take a look at the `run_on_change` side effect.)
+  در حال حاضر، این بخش فقط مثال‌هایی با پیاده‌سازی دارت ارائه می‌ده،  
+  چون کش کردن اشیای ساخته‌شده توسط کارخانه‌ها معمولاً لازم نیست و توی Rust به این سادگی نیست.  
+  (هرچند اگه نیاز داری، یه نگاه به اثر جانبی `run_on_change` بنداز.)
 </Info>
 
-If you need to:
-- Cache a factory-created object (perhaps until the factory instance changes)
-- Dispose old factory-created objects to prevent leaks (perhaps when a new object is created)
+اگه نیاز داری:  
+- یه شیء ساخته‌شده توسط کارخانه رو کش کنی (مثلاً تا وقتی نمونه کارخانه تغییر نکرده)  
+- اشیای قدیمی ساخته‌شده توسط کارخانه رو حذف کنی تا جلوی نشتی (leak) گرفته بشه (مثلاً وقتی یه شیء جدید ساخته می‌شه)  
 
-Then take a look at the following snippet.
+به کد زیر یه نگاه بنداز.
 
-If you are familiar with React or `flutter_hooks`, this will feel exceedingly natural to you.
-See the dedicated documentation page on side effects for more.
+اگه با React یا `flutter_hooks` آشنا باشی، این کار برات خیلی طبیعی به نظر می‌رسه.  
+برای اطلاعات بیشتر، صفحه مستندات مربوط به اثرات جانبی رو ببین.
 
-```dart title="Caching objects created with factories"
+```dart title="کش کردن اشیای ساخته‌شده با کارخانه‌ها"
 MyCustomObject defaultParamMyCustomObjCapsule(CapsuleHandle use) {
-  // Our factory capsule:
+  // کپسول کارخانه ما:  
   final objFactory = use(objFactoryCapsule);
 
-  // Some arbitrary capsule that may cause a rebuild
-  // even when objFactory itself doesn't change:
+  // یه کپسول دلخواه که ممکنه باعث بازسازی (rebuild) بشه  
+  // حتی اگه خود objFactory تغییر نکنه:  
   final someString = use(someCapsule);
 
-  // Only recreate myObj when objFactory or someString change
+  // فقط وقتی objFactory یا someString تغییر کردن، myObj رو دوباره بساز  
   final myObj = use.memo(() {
     return objFactory(someString);
   }, [objFactory, someString]);
 
-  // Whenever myObj changes, register the new object for disposal
+  // هر وقت myObj تغییر کرد، شیء جدید رو برای حذف ثبت کن  
   use.effect(() => myObj.dispose, [myObj]);
 
   return myObj;
 }
 ```
 
-This combination of `memo` and `effect` is *very* common,
-especially when handling `FooBarController`s,
-so it is best to learn how to use them early on.
+این ترکیب از `memo` و `effect` خیلی رایجه،  
+مخصوصاً وقتی با `FooBarController`ها کار می‌کنی،  
+پس بهتره زودتر یاد بگیری که چطور ازشون استفاده کنی.
