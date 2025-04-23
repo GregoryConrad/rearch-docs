@@ -1,85 +1,80 @@
 ---
-title: Capsules
-description: Learn the basics behind capsules in ReArch.
+title: کپسول‌ها
+description: با اصول اولیه کپسول‌ها در ReArch آشنا شوید.
 ---
 
-# Capsules
-Capsules are the most fundamental building block of ReArch.
-Capsules en-_capsulate_ some data, thus their name.
+# کپسول‌ها
+کپسول‌ها اساسی‌ترین بلوک‌های سازنده ReArch هستن.  
+کپسول‌ها داده‌ها رو _کپسوله_ می‌کنن، و برای همین به این اسم نام‌گذاری شدن.
 
 <Info>
-  Data here encompasses more than just raw data; it also includes functions.
-  This is an important consideration, as ReArch is highly functional.
+  داده‌ها اینجا فراتر از فقط داده‌های خام هستن؛ شامل توابع هم می‌شن.  
+  این یه نکته مهمه، چون ReArch خیلی تابعی (functional) طراحی شده.
 </Info>
 
+## نظریه
+وقتی شروع به طراحی یه اپلیکیشن می‌کنی،  
+اغلب راحت‌تره که به داده‌هایی که داری مدل‌سازی می‌کنی  
+و نحوه تعامل اون داده‌ها با داده‌های دیگه توی اپلیکیشنت فکر کنی.  
+در نتیجه، وقتی می‌ری که یه حالت غیرساده (non-trivial state) بسازی،  
+به احتمال زیاد اون حالت به یه حالت دیگه توی اپلیکیشنت وابسته‌ست.
 
-## The Theory
-When you start designing an application,
-it is often easiest to think in terms of the data you are modeling
-and how that data interacts with other data in your application.
-Consequently, when you go to create some non-trivial state,
-chances are high that it depends on some other form of state in your application.
-
-
-### Functions of State
-Capsules let you think in this manner by themselves being *functions of state*
-(and more generally, side effects, but more on that later).
-This may sound wishy-washy, so here is a concrete example:
-```dart title="Basic count and countPlusOne capsules"
+### توابع حالت
+کپسول‌ها بهت اجازه می‌دن به این شکل فکر کنی، چون خودشون *توابع حالت* هستن  
+(و به‌صورت کلی‌تر، اثرات جانبی، ولی بعداً بیشتر درباره‌شون می‌گیم).  
+این ممکنه یه کم گنگ به نظر بیاد، پس یه مثال ملموس اینجاست:  
+```dart title="کپسول‌های ساده count و countPlusOne"
 int countCapsule(CapsuleHandle use) => 0;
 
 int countPlusOneCapsule(CapsuleHandle use) => use(countCapsule) + 1;
 ```
-Notice here how `countPlusOneCapsule` *consumes* `countCapsule`;
-i.e., `countPlusOneCapsule` is a function of state, where the state is the current `countCapsule`!
+توجه کن که اینجا `countPlusOneCapsule` چطور `countCapsule` رو *مصرف* می‌کنه؛  
+یعنی `countPlusOneCapsule` یه تابع حالته، که حالت‌ش همون `countCapsule` فعلیه!
 
-As you can see in the above example, capsules are nothing special;
-every capsule is merely a function that consumes a `CapsuleHandle`.
-A capsule's power is derived from from _how you use the `CapsuleHandle`_ within the capsule.
+همون‌طور که توی مثال بالا می‌بینی، کپسول‌ها چیز خاصی نیستن؛  
+هر کپسول فقط یه تابعه که یه `CapsuleHandle` مصرف می‌کنه.  
+قدرت یه کپسول از این میاد که _چطور از `CapsuleHandle` توی کپسول استفاده می‌کنی_.
 
 <Info>
-In Dart, there is also another way to define capsules (via a syntactic sugar):
-```dart title="Example capsule written via syntactic sugar"
+توی دارت، یه راه دیگه هم برای تعریف کپسول‌ها وجود داره (از طریق یه شکر نحوی):  
+```dart title="مثال کپسول نوشته‌شده با شکر نحوی"
 final Capsule<ValueWrapper<int>> myIntCapsule = capsule((use) => use.data(0));
 ```
-Note that this is exactly the same as writing the capsule out as a function,
-as the `capsule()` function is simply defined as:
-```dart title="Definition of the capsule() function"
+توجه کن که این دقیقاً همون نوشتن کپسول به‌صورت تابعه‌ست،  
+چون تابع `capsule()` فقط این‌طوری تعریف شده:  
+```dart title="تعریف تابع capsule()"
 Capsule<T> capsule<T>(Capsule<T> cap) => cap;
 ```
-You are welcome to use whichever version you prefer in your projects; they are 100% interoperable.
+می‌تونی هر کدوم از این روش‌ها رو که دوست داری توی پروژه‌ت استفاده کنی؛ کاملاً باهم سازگارن.
 </Info>
 
+### تغییرناپذیری (Immutability)
+کپسول‌ها با این نیت طراحی شدن که داده‌هایی که تولید می‌کنن *تغییرناپذیر* باشن.  
+توی Rust، این با ندادن `&mut` به داده‌های کپسول‌ها اجبار شده.  
+توی دارت، خودت باید مطمئن شی که داده‌های یه کپسول رو مستقیماً تغییر نمی‌دی  
+مگر اینکه از یکی از اثرات جانبی استفاده کنی (باز هم بعداً درباره اثرات جانبی بیشتر می‌گیم).
 
-### Immutability
-Capsules were designed with the intent that the data they produce is *immutable*.
-In Rust, this is enforced via never providing a `&mut` to any capsule's data.
-In Dart, it is up to you to make sure you do not directly mutate a capsule's data
-without using one of the side effects (again, more on side effects later).
+## `CapsuleHandle`
+خب این پارامتر جادویی `CapsuleHandle` که همه کپسول‌ها مصرف می‌کنن چیه؟  
+`CapsuleHandle` اصلاً جادویی نیست؛  
+فقط یه اجاره موقت از `Container` (صفحه بعدی) برای ساخت داده‌های یه کپسوله،  
+با توجه به حالت کانتینر.
 
-
-## The `CapsuleHandle`
-So what is this magical `CapsuleHandle` parameter all capsules consume?
-The `CapsuleHandle` is actually not magic at all;
-it is just a temporary lease from the `Container` (next page) to build a capsule's data,
-given the state of the container.
-
-More specifically, the `CapsuleHandle` is a composition of two other types:
-- The `CapsuleReader` allows the capsule to read the current data of itself and other capsules
-- The `SideEffectRegistrar` allows the capsule to register side effects
+به‌طور خاص‌تر، `CapsuleHandle` ترکیبی از دو نوع دیگه‌ست:  
+- `CapsuleReader` به کپسول اجازه می‌ده داده‌های فعلی خودش و کپسول‌های دیگه رو بخونه.  
+- `SideEffectRegistrar` به کپسول اجازه می‌ده اثرات جانبی رو ثبت کنه.
 
 <Warning>
-Do not use a `CapsuleHandle` across an asynchronous gap
-(i.e., used after any `await`s or in a callback) in Dart!
-Although you may not see issues immediately,
-know that you may encounter issues when in more complex situations.
-(Rust does not have this issue due to its ownership rules.)
+توی دارت، از `CapsuleHandle` توی یه فاصله ناهمزمان استفاده نکن  
+(یعنی بعد از هر `await` یا توی یه callback)!  
+هرچند ممکنه فوراً مشکلی نبینی،  
+بدون که توی موقعیت‌های پیچیده‌تر ممکنه به مشکل بربخوری.  
+(Rust به خاطر قوانین مالکیتش این مشکل رو نداره.)
 </Warning>
 
-
-### The `CapsuleReader`
-The `CapsuleReader` provides the familiar `use(...)` syntax in Dart and `get(...)` in Rust.
-<CodeGroup title="Using The CapsuleReader">
+### `CapsuleReader`
+`CapsuleReader` همون سینتکس آشنا رو ارائه می‌ده: `use(...)` توی دارت و `get(...)` توی Rust.  
+<CodeGroup title="استفاده از CapsuleReader">
   ```dart
   int countCapsule(CapsuleHandle _) => 0;
 
@@ -94,26 +89,24 @@ The `CapsuleReader` provides the familiar `use(...)` syntax in Dart and `get(...
   }
 
   fn count_plus_one_capsule(CapsuleHandle { mut get, .. }: CapsuleHandle) -> u8 {
-      // Please note the following distinction in syntax based on toolchain;
-      // the nightly syntax will be used in all remaining examples for clarity.
-      // get.as_ref(count_capsule) + 1 // Works in stable and nightly
-      get(count_capsule) + 1           // Works in nightly only with "experimental-api" feature
+      // لطفاً به تفاوت سینتکس بر اساس toolchain توجه کن؛  
+      // توی مثال‌های بعدی برای وضوح، سینتکس nightly استفاده می‌شه.  
+      // get.as_ref(count_capsule) + 1 // توی stable و nightly کار می‌کنه  
+      get(count_capsule) + 1           // فقط توی nightly با قابلیت "experimental-api" کار می‌کنه  
   }
   ```
 </CodeGroup>
 
+### `SideEffectRegistrar`
+`SideEffectRegistrar` مجموعه آشنای اثرات جانبی `use.fooBar()` توی دارت  
+و `register(effect1(), effect2())` توی Rust رو ارائه می‌ده.  
+برای اطلاعات بیشتر، [مستندات مربوط به اثرات جانبی](/core/effects) رو ببین.
 
-### The `SideEffectRegistrar`
-The `SideEffectRegistrar` provides the familiar set of `use.fooBar()` side effects in Dart 
-and `register(effect1(), effect2())` in Rust.
-See [the docs on side effects](/core/effects) for more.
-
-
-## Generic Capsules
-As a reminder, a capsule is just a function that consumes a `CapsuleHandle` and returns some data.
-Because of this realization, *generic* functions that consume `CapsuleHandle`s are *also* capsules.
-This can lead to some pretty interesting patterns, a (somewhat useless) example of which is below.
-<CodeGroup title="Generic capsules example">
+## کپسول‌های عمومی (Generic)
+به‌عنوان یادآوری، یه کپسول فقط یه تابعه که یه `CapsuleHandle` مصرف می‌کنه و یه داده برمی‌گردونه.  
+به خاطر این درک، توابع *عمومی (generic)* که `CapsuleHandle` مصرف می‌کنن هم کپسول هستن.  
+این می‌تونه به الگوهای جالبی منجر بشه، که یه مثال (یه کم بی‌فایده) ازش رو پایین می‌بینی.  
+<CodeGroup title="مثال کپسول‌های عمومی">
   ```dart
   List<T> Function(T, int) repeatedItemFactory<T>(CapsuleHandle use) {
     return (itemToRepeat, repetitions) => List.generate(repetitions, (_) => itemToRepeat);
@@ -122,7 +115,7 @@ This can lead to some pretty interesting patterns, a (somewhat useless) example 
   // ...
   final repeatedIntsFactory = container.read(repeatedItemFactory<int>);
   final repeatedStringsFactory = container.read(repeatedItemFactory<String>);
-  final repeatedStrings = repeatedStringsFactory("this will be repeated 1234 times!", 1234);
+  final repeatedStrings = repeatedStringsFactory("این ۱۲۳۴ بار تکرار می‌شه!", 1234);
   ```
 
   ```rust
@@ -135,25 +128,23 @@ This can lead to some pretty interesting patterns, a (somewhat useless) example 
   // ...
   let repeated_ints_factory = container.read(repeated_item_factory::<i32>);
   let repeated_strs_factory = container.read(repeated_item_factory::<&str>);
-  let repeated_strs = repeated_strs_factory("this will be repeated 1234 times!", 1234);
+  let repeated_strs = repeated_strs_factory("این ۱۲۳۴ بار تکرار می‌شه!", 1234);
   ```
 </CodeGroup>
 <Info>
-  Notice how the capsule above returns a *function*;
-  this is a very useful pattern that will be revisited again in the pages on the factories/actions.
+  توجه کن که کپسول بالا یه *تابع* برمی‌گردونه؛  
+  این یه الگوی خیلی مفیده که توی صفحات مربوط به کارخانه‌ها/اکشن‌ها دوباره بهش برمی‌گردیم.
 </Info>
 
+## کاهش بازسازی‌ها
+کاهش بازسازی‌ها یه بهینه‌سازی مفیده که توی ReArch می‌تونی از طریق این روش‌ها انجام بدی:  
+1. استفاده شرطی از کپسول‌ها  
+2. کپسول‌های درون‌خطی (inline capsules)
 
-## Reducing Builds
-Reducing builds is a useful optimization that can be done in ReArch through:
-1. Conditionally using capsules
-2. Inline capsules
+### کی نیاز به کاهش بازسازی‌ها داری؟
+کپسول زیر رو در نظر بگیر.
 
-
-### When Do You Need to Reduce Rebuilds?
-Consider the following capsule.
-
-<CodeGroup title="Capsule with excessive rebuilds">
+<CodeGroup title="کپسول با بازسازی‌های بیش‌ازحد">
   ```dart
   FooBar expensiveOperationUsingCount(CapsuleHandle use) {
     final count = use(countCapsule);
@@ -171,17 +162,17 @@ Consider the following capsule.
   ```
 </CodeGroup>
 
-This looks ok until you realize that whenever `count` changes,
-`someExpensiveOperation`/`some_expensive_operation` will be called again,
-even if `isWatching`/`is_watching` is false!
-These extra rebuilds can be removed with the following.
+این به نظر مشکلی نداره تا وقتی متوجه بشی که هر وقت `count` تغییر می‌کنه،  
+`someExpensiveOperation`/`some_expensive_operation` دوباره فراخوانی می‌شه،  
+حتی اگه `isWatching`/`is_watching` فالس باشه!  
+این بازسازی‌های اضافی رو می‌تونی با روش زیر حذف کنی.
 
-<CodeGroup title="Limiting extra rebuilds">
+<CodeGroup title="محدود کردن بازسازی‌های اضافی">
   ```dart
   FooBar expensiveOperationUsingCount(CapsuleHandle use) {
     if (use(isWatchingCapsule)) {
-      // Having this use within a branch will stop rebuilds caused by
-      // countCapsule when isWatching is false.
+      // داشتن این use توی یه شرط، بازسازی‌هایی که به خاطر  
+      // countCapsule وقتی isWatching فالسه ایجاد می‌شن رو متوقف می‌کنه.  
       return someExpensiveOperation(use(countCapsule));
     }
     return someExpensiveOperation(null);
@@ -191,8 +182,8 @@ These extra rebuilds can be removed with the following.
   ```rust
   fn expensive_operation_using_count(CapsuleHandle { mut get, .. }: CapsuleHandle) -> FooBar {
     if get(is_watching) {
-      // Having this get within a branch will stop rebuilds caused by
-      // count when is_watching is false.
+      // داشتن این get توی یه شرط، بازسازی‌هایی که به خاطر  
+      // count وقتی is_watching فالسه ایجاد می‌شن رو متوقف می‌کنه.  
       some_expensive_operation(Some(get(count)))
     } else {
       some_expensive_operation(None)
@@ -201,52 +192,51 @@ These extra rebuilds can be removed with the following.
   ```
 </CodeGroup>
 
-However, this simple conditional watching is not always enough to reduce some builds;
-sometimes, `someExpensiveOperation` is a `Widget` rebuild in Flutter,
-where the rebuild depends upon some non-encapsulable data (such as a key in a large collection).
-For situations like this, you likely need *inline capsules*
-to prevent rebuilding potentially thousands of Widgets displaying the current data in a collection
-whenever just a single entry is modified.
+با این حال، این مشاهده شرطی ساده همیشه برای کاهش بعضی بازسازی‌ها کافی نیست؛  
+گاهی اوقات، `someExpensiveOperation` یه بازسازی ویجت توی فلاتره،  
+که بازسازی به یه داده غیرقابل‌کپسوله‌سازی (مثل یه کلید توی یه مجموعه بزرگ) بستگی داره.  
+برای موقعیت‌هایی مثل این، احتمالاً به *کپسول‌های درون‌خطی* نیاز داری  
+تا از بازسازی بالقوه هزاران ویجت که داده فعلی توی یه مجموعه رو نشون می‌دن جلوگیری کنی  
+وقتی فقط یه ورودی تغییر می‌کنه.
 
-
-## Inline Capsules
-Inline capsules are just regular capsules (which, as a reminder, are just functions),
-but are unique because they are *closures*.
+## کپسول‌های درون‌خطی
+کپسول‌های درون‌خطی فقط کپسول‌های معمولی هستن (که یادتونه—just functions هستن)،  
+ولی خاصن چون *کلوژر* (closures) هستن.
 
 <Info>
-  While you can *define* inline capsules in Rust, I have not found a useful application of them yet,
-  mostly because ReArch for Rust does not have an accompanying UI framework.
-  Thus, the rest of this section only applies to Dart at the moment.
+  در حالی که می‌تونی کپسول‌های درون‌خطی رو توی Rust *تعریف* کنی،  
+  من هنوز یه کاربرد مفید براشون پیدا نکردم،  
+  بیشتر به این دلیل که ReArch برای Rust یه فریم‌ورک UI همراهش نداره.  
+  پس بقیه این بخش فعلاً فقط برای دارت 적용 می‌شه.
 </Info>
 
-There are two ways to create inline capsules:
-- `myCapsule.map()`, a convenience extension method that creates an inline capsule
-- Manually (but caution must be used here)!
+دو راه برای ساختن کپسول‌های درون‌خطی وجود داره:  
+- `myCapsule.map()`، یه متد الحاقی便利 که یه کپسول درون‌خطی می‌سازه  
+- به‌صورت دستی (ولی اینجا باید احتیاط کنی)!  
 
-Each solves slightly different use-cases.
-However, when possible, it is best to make new *intermediary* top-level capsules instead,
-and let ReArch use its own optimizations to limit rebuilds.
-Remember, capsules are cheap, and are designed to be composed.
-You should only very rarely use inline capsules,
-and when you do, make sure they are *very cheap* (ideally just a constant-time look-up).
-
+هر کدوم یه سری موارد استفاده کمی متفاوت رو حل می‌کنن.  
+با این حال، تا جایی که می‌تونی بهتره کپسول‌های سطح بالای *واسطه‌ای* جدید بسازی،  
+و بذاری ReArch خودش بهینه‌سازی‌هاش رو برای محدود کردن بازسازی‌ها انجام بده.  
+یادت باشه، کپسول‌ها ارزونن و برای ترکیب‌پذیری طراحی شدن.  
+فقط توی موارد خیلی نادر باید از کپسول‌های درون‌خطی استفاده کنی،  
+و وقتی این کار رو می‌کنی، مطمئن شو که *خیلی ارزون* هستن (در حالت ایده‌آل فقط یه جست‌وجوی زمان ثابت).
 
 ### `.map()`
-The example Flutter app utilizes `.map()` to reduce some rebuilds,
-so see that for a more full example.
-However, here is a simple example to give you an idea of how `.map()` works.
+اپلیکیشن نمونه فلاتر از `.map()` برای کاهش بعضی بازسازی‌ها استفاده می‌کنه،  
+پس برای یه مثال کامل‌تر اون رو ببین.  
+ولی اینجا یه مثال ساده‌ست که بهت ایده می‌ده `.map()` چطور کار می‌کنه.
 
-```dart title="Inline capsule example with .map()"
+```dart title="مثال کپسول درون‌خطی با .map()"
 class MyListItem extends RearchConsumer {
   const MyListItem(this.listIndex, {super.key});
 
   final int listIndex;
 
   Widget build(BuildContext context, WidgetHandle use) {
-    // With this inline capsule, we only rebuild when the data at
-    // myList[listIndex] changes, instead of the whole myList.
+    // با این کپسول درون‌خطی، فقط وقتی داده توی  
+    // myList[listIndex] تغییر می‌کنه بازسازی می‌کنیم، به‌جای کل myList.  
     final dataAtIndex = use(
-      // This creates a new inline capsule that gets a particular index of myList:
+      // این یه کپسول درون‌خطی جدید می‌سازه که یه شاخص خاص از myList رو می‌گیره:  
       myListCapsule.map((myList) => myList[listIndex]),
     );
     return Text('$dataAtIndex');
@@ -254,34 +244,33 @@ class MyListItem extends RearchConsumer {
 }
 ```
 
-
-### Manual Inline Capsules
-Contrary to the `.map()` convenience method, manual inline capsules define the closure explicitly.
-This is beneficial when your inline capsule depends on >1 other capsules,
-which should be rather rare.
+### کپسول‌های درون‌خطی دستی
+برخلاف متد راحتی `.map()`، کپسول‌های درون‌خطی دستی کلوژر رو به‌صورت صریح تعریف می‌کنن.  
+این وقتی مفیده که کپسول درون‌خطی‌ت به >۱ کپسول دیگه وابسته باشه،  
+که باید خیلی نادر باشه.
 
 <Warning>
-  Only use manual inline capsules when your inline capsule needs to `use`
-  *multiple* different capsules,
-  as manual inline capsules are easier to mess up and cause leaks!
+  فقط وقتی از کپسول‌های درون‌خطی دستی استفاده کن که کپسول درون‌خطی‌ت نیاز داشته باشه  
+  از *چندین* کپسول مختلف `use` کنه،  
+  چون کپسول‌های درون‌خطی دستی راحت‌تر خراب می‌شن و باعث نشتی (leak) می‌شن!
 </Warning>
 
-Here's the previous example, but rewritten to use a manually defined inline capsule.
-```dart title="Manual inline capsule example"
+اینجا مثال قبلی رو داریم، ولی با یه کپسول درون‌خطی دستی بازنویسی شده.  
+```dart title="مثال کپسول درون‌خطی دستی"
 class MyListItem extends RearchConsumer {
   const MyListItem(this.listIndex, {super.key});
 
   final int listIndex;
 
   Widget build(BuildContext context, WidgetHandle use) {
-    // With this inline capsule, we only rebuild when the data at
-    // myList[listIndex] changes, instead of the whole myList.
+    // با این کپسول درون‌خطی، فقط وقتی داده توی  
+    // myList[listIndex] تغییر می‌کنه بازسازی می‌کنیم، به‌جای کل myList.  
     final dataAtIndex = use(
-      // This creates a new inline capsule that gets a particular index of myList:
+      // این یه کپسول درون‌خطی جدید می‌سازه که یه شاخص خاص از myList رو می‌گیره:  
       (CapsuleReader use) => use(myListCapsule)[listIndex],
 
-      // While the following works, it is considered a bad practice
-      // (keep reading for an explanation):
+      // هرچند کد زیر کار می‌کنه، ولی یه روش بد به حساب میاد  
+      // (برای توضیح ادامه رو بخون):  
       // (use) => use(myListCapsule)[listIndex],
     );
     return Text('$dataAtIndex');
@@ -289,12 +278,12 @@ class MyListItem extends RearchConsumer {
 }
 ```
 
-Notice above how the parameter is declared as `CapsuleReader use`;
-while you actually get a full `CapsuleHandle` here for the inline capsule,
-you must be careful to not use any side effects (`use.fooBar()`) or *you will cause leaks*.
-Thus, it is considered to be a best practice to prevent yourself from using side effects
-by declaring the parameter type as `CapsuleReader` instead of letting it get inferred
-as a `CapsuleHandle` (which is what happens if you do not explicitly specify `CapsuleReader`).
-You can actually use this same pattern for your regular capsules too
-if you wish to declare that it cannot use side effects (i.e., is an idempotent capsule),
-but that is not documented elsewhere in order to not confuse beginners.
+توجه کن که بالا پارامتر به‌عنوان `CapsuleReader use` تعریف شده؛  
+هرچند اینجا برای کپسول درون‌خطی یه `CapsuleHandle` کامل می‌گیری،  
+باید مراقب باشی که از هیچ اثر جانبی‌ای (`use.fooBar()`) استفاده نکنی وگرنه *باعث نشتی می‌شی*.  
+برای همین، یه روش خوبه که جلوی خودت رو بگیری از استفاده از اثرات جانبی  
+با تعریف نوع پارامتر به‌عنوان `CapsuleReader` به‌جای اینکه بذاری به‌صورت خودکار  
+به‌عنوان `CapsuleHandle` استنباط بشه (که اگه صراحتاً `CapsuleReader` رو مشخص نکنی این اتفاق می‌افته).  
+در واقع می‌تونی همین الگو رو برای کپسول‌های معمولی‌ت هم استفاده کنی  
+اگه بخوای بگی که نمی‌تونه از اثرات جانبی استفاده کنه (یعنی یه کپسول idempotent باشه)،  
+ولی این توی جاهای دیگه مستندات توضیح داده نشده تا مبتدی‌ها رو گیج نکنه.
