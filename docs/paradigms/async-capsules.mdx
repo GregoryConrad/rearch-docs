@@ -1,26 +1,25 @@
 ---
-title: Async Capsules
-description: Learn the basics behind asynchronous capsules in ReArch.
+title: کپسول‌های ناهمزمان
+description: با اصول اولیه کپسول‌های ناهمزمان در ReArch آشنا شوید.
 ---
 
-# Async Capsules
-Often, you want to make a capsule that wraps around some asynchronous code
-so that asynchronous code can be utilized in other capsules.
-This poses an interesting problem, as every capsule is synchronous by nature.
-The solution: side effects!
-Side effects are indeed the mechanism that allows for external events to trigger capsule updates,
-which is exactly what we need here.
+# کپسول‌های ناهمزمان
+خیلی وقت‌ها می‌خوای یه کپسول بسازی که دور یه کد ناهمزمان (asynchronous) بپیچه  
+تا بتونی از اون کد ناهمزمان توی کپسول‌های دیگه استفاده کنی.  
+این یه مشکل جالب ایجاد می‌کنه، چون هر کپسولی به‌صورت ذاتی همزمانی (synchronous) هست.  
+راه‌حل: اثرات جانبی!  
+اثرات جانبی در واقع مکانیزمی هستن که به رویدادهای خارجی اجازه می‌دن آپدیت‌های کپسول رو فعال کنن،  
+و این دقیقاً چیزیه که اینجا نیاز داریم.
 
-
-## An Example
-<CodeGroup title="Creating Asynchronous Capsules">
+## یه مثال
+<CodeGroup title="ایجاد کپسول‌های ناهمزمان">
   ```dart
   int countCapsule(CapsuleHandle _) => 0;
 
-  /// Our "raw" async capsule that directly returns a Future (can also return a Stream).
+  /// کپسول "خام" ناهمزمان ما که مستقیماً یه Future برمی‌گردونه (می‌تونه Stream هم برگردونه).  
   Future<int> delayedAsyncCapsule(CapsuleHandle use) async {
-    // All capsule reads and side effects *must* be before the first `await`.
-    // (But often, it is preferable to avoid side effects in async capsules.)
+    // همه خوندن‌های کپسول و اثرات جانبی *باید* قبل از اولین `await` باشن.  
+    // (ولی اغلب بهتره توی کپسول‌های ناهمزمان از اثرات جانبی استفاده نکنی.)  
     final count = use(countCapsule);
 
     final delayedCount = await Future.delayed(
@@ -31,11 +30,11 @@ which is exactly what we need here.
     return delayedCount + 1;
   }
 
-  /// Our "wrapper" capsule that returns an AsyncValue, which is often more useful in UI code.
-  /// This wrapper also ensures that delayedAsyncCapsule's value is cached within the Container,
-  /// as this capsule utilizes a side effect.
-  /// Note that you can also `use.future` in your UI code directly too,
-  /// in case you don't want to eagerly cache the future.
+  /// کپسول "wrapper" ما که یه AsyncValue برمی‌گردونه، و اغلب توی کد UI مفیدتره.  
+  /// این wrapper همچنین مطمئن می‌شه که مقدار delayedAsyncCapsule توی کانتینر کش می‌شه،  
+  /// چون این کپسول از یه اثر جانبی استفاده می‌کنه.  
+  /// توجه کن که می‌تونی مستقیماً از `use.future` توی کد UI هم استفاده کنی،  
+  /// اگه نمی‌خوای Future رو به‌صورت مشتاقانه (eagerly) کش کنی.  
   AsyncValue<int> delayedCapsule(CapsuleHandle use) {
     final delayed = use(delayedAsyncCapsule);
     return use.future(delayed);
@@ -43,20 +42,19 @@ which is exactly what we need here.
   ```
 
   ```rust
-  // There are a few different ways to do this, but the following is the most standard way.
-  // TODO copy example from rearch-tokio
+  // چند راه مختلف برای این کار وجود داره، ولی روش زیر استانداردترینه.  
+  // TODO: مثال از rearch-tokio کپی بشه  
   ```
 </CodeGroup>
 
+## کپسول‌های ناهمزمان قابل‌تازه‌سازی
+<Info>این بخش فقط برای Dart/Flutter هست، چون Futureها توی Rust یه مقدار متفاوت مدیریت می‌شن.</Info>
 
-## Refreshable Asynchronous Capsules
-<Info>This section is Dart/Flutter only, as futures are handled slightly differently in Rust.</Info>
-
-The created `delayedCapsule` in the above example is just a read-only "view" of the future.
-It doesn't contain any state of its own and merely stores the current value of the async capsule.
-If you want to refresh the delayed capule's state, say by fetching new data from online,
-we need a slightly different approach which will swap in a new future.
-`refreshableFuture` side effect to the rescue!
+کپسول `delayedCapsule` که توی مثال بالا ساختیم، فقط یه دید "فقط-خوندن" از Future هست.  
+این کپسول هیچ حالت خودش رو نداره و فقط مقدار فعلی کپسول ناهمزمان رو ذخیره می‌کنه.  
+اگه بخوای حالت delayedCapsule رو تازه‌سازی (refresh) کنی، مثلاً با گرفتن داده جدید از آنلاین،  
+نیاز به یه رویکرد کمی متفاوت داریم که یه Future جدید رو جایگزین کنه.  
+اثر جانبی `refreshableFuture` به کمکمون میاد!
 
 ```dart
 (AsyncValue<int>, void Function()) refreshableDelayedCapsule(CapsuleHandle use) {
@@ -66,34 +64,31 @@ we need a slightly different approach which will swap in a new future.
 }
 ```
 
-There is also an equivalent for just invalidation: `invalidatableFuture`.
-The difference is that `invalidatableFuture` only executes a new future when it is currently in use,
-whereas `refreshableFuture` will always execute a new future when refreshed.
+یه معادل هم برای فقط باطل کردن (invalidation) وجود داره: `invalidatableFuture`.  
+فرقش اینه که `invalidatableFuture` فقط وقتی یه Future جدید اجرا می‌کنه که در حال حاضر استفاده بشه،  
+در حالی که `refreshableFuture` همیشه که تازه‌سازی بشه یه Future جدید اجرا می‌کنه.
 
+## `AsyncValue`/`AsyncState` چیه؟
+ممکنه متوجه بشی که وقتی اثرات جانبی ناهمزمان رو اعمال می‌کنی،  
+داده‌هایی از نوع `AsyncValue<T>` یا `AsyncState<T>` بهت داده می‌شه.
 
-## What is `AsyncValue`/`AsyncState`?
-You may notice that when applying the asynchronous side effects,
-you are given data of type `AsyncValue<T>`/`AsyncState<T>`.
+این کاملاً عمدیه؛  
+این بهت اجازه می‌ده حالت فعلی کد ناهمزمان رو به‌صورت همزمانی مدیریت کنی،  
+که لازمه چون ساخت‌های ReArch *کاملاً همزمانی* هستن و (توی دارت) *نمی‌تونن خطا پرتاب کنن*.  
+برای همین، خیلی توصیه می‌شه که یاد بگیری چطور با `AsyncValue`/`AsyncState` کار کنی  
+به‌جای اینکه سعی کنی ازشون دوری کنی.
 
-This is entirely intentional;
-it allows you to handle the current state of asynchronous code synchronously,
-which is needed as ReArch *builds are completely synchronous* and (in Dart) *cannot throw*.
-As such, it is highly recommended that you learn how to properly work with `AsyncValue`/`AsyncState`
-instead of trying to avoid it.
+### `AsyncValue` توی دارت
+`AsyncValue`ها سه حالت رو برای Futureها و Streamها نشون می‌دن:  
+- Future/Stream هنوز در حال لود شدن و چیزی منتشر نکرده (`AsyncLoading`)  
+- Future/Stream داده منتشر کرده (`AsyncData`)  
+- Future/Stream یه خطا منتشر کرده (`AsyncError`)  
 
+برای اطلاعات بیشتر، مستندات API مربوط به `AsyncValue` رو ببین.
 
-### Dart's `AsyncValue`
-`AsyncValue`s represent one of three states for futures and streams:
-- Future/stream is still loading and has not emitted anything (`AsyncLoading`)
-- Future/stream emitted data (`AsyncData`)
-- Future/stream emitted an error (`AsyncError`)
+### `AsyncState` توی Rust
+`AsyncState`ها دو حالت رو برای Futureها نشون می‌دن:  
+- Future هنوز در حال لود شدن و چیزی منتشر نکرده (`Loading`)  
+- Future داده منتشر کرده (`Complete`)  
 
-See `AsyncValue`'s API docs for more.
-
-
-### Rust's `AsyncState`
-`AsyncState`s represent one of two states for futures:
-- Future is still loading and has not emitted anything (`Loading`)
-- Future emitted data (`Complete`)
-
-See `AsyncState`'s API docs for more.
+برای اطلاعات بیشتر، مستندات API مربوط به `AsyncState` رو ببین.
