@@ -1,46 +1,45 @@
 ---
-title: Warm Up Capsules
-description: Learn about warm up capsules and how to use them in ReArch.
+title: کپسول‌های گرم‌کننده
+description: درباره کپسول‌های گرم‌کننده و نحوه استفاده‌شون توی ReArch یاد بگیر.
 ---
 
-# Warm Up Capsules
-Warm up capsules are useful when you have some
-asynchronous capsule whose value you want to access synchronously in the future,
-without needing all dependent capsules to themselves be asynchronous.
-This is especially helpful when dealing with something like a
-`SharedPreferences` or `FirebaseApp` instance (in Dart/Flutter)
-or a database connection (in Rust),
-which you can only get a copy of asynchronously.
+# کپسول‌های گرم‌کننده
+کپسول‌های گرم‌کننده وقتی مفیدن که یه  
+کپسول ناهمزمان داری و می‌خوای مقدارش رو توی آینده به‌صورت همزمان دسترسی کنی،  
+بدون اینکه همه کپسول‌های وابسته خودشون ناهمزمان باشن.  
+این به‌خصوص وقتی با چیزایی مثل  
+`SharedPreferences` یا `FirebaseApp` (توی دارت/فلاتر)  
+یا یه اتصال دیتابیس (توی Rust) کار می‌کنی مفیده،  
+چون فقط می‌تونی به‌صورت ناهمزمان یه کپی ازشون بگیری.
 
-You *warm up* warm up capsules so that any dependent capsules are ready to use.
-For Flutter, there is a simple built-in extension method to help you warm up capsules,
-named `.toWarmUpWidget()`.
+تو کپسول‌های گرم‌کننده رو *گرم می‌کنی* تا هر کپسول وابسته‌ای آماده استفاده باشه.  
+برای فلاتر، یه متد الحاقی داخلی ساده وجود داره که بهت کمک می‌کنه کپسول‌ها رو گرم کنی،  
+به اسم `.toWarmUpWidget()`.
 
 <Warning>
-You *must* perform the warm up process *before any dependent capsules are read/initialized*;
-failing to do so will result in an unrecoverable error.
+باید فرآیند گرم کردن رو *قبل از اینکه هر کپسول وابسته‌ای خونده یا مقداردهی بشه* انجام بدی؛  
+اگه این کار رو نکنی، یه خطای غیرقابل‌بازیابی به وجود میاد.
 </Warning>
 
 <Warning>
-You should only use application-wide warm up capsules for asynchronous values that:
-1. Are highly unlikely to fail.
-2. When fail, should be treated as unrecoverable error(s).
+فقط باید از کپسول‌های گرم‌کننده در سطح اپلیکیشن برای مقادیر ناهمزمانی استفاده کنی که:  
+1. خیلی بعیده که خطا بدن.  
+2. اگه خطا بدن، باید به‌عنوان خطاهای غیرقابل‌بازیابی در نظر گرفته بشن.  
 
-If something in a warm up capsule fails in Flutter, anything below the warm up widget
-in the widget tree will be unaccessible and the error widget will be shown!
+اگه چیزی توی یه کپسول گرم‌کننده توی فلاتر خطا بده، هر چیزی زیر ویجت گرم‌کننده  
+توی درخت ویجت غیرقابل‌دسترسی می‌شه و ویجت خطا نمایش داده می‌شه!
 </Warning>
 
-In Flutter, you can often (and when possible, should) use `.toWarmUpWidget()`
-to warm up capsules in more nested parts of the widget tree.
-Warming up capsules in a more nested location is a better practice than warming up capsules globally
-(i.e., right under `RearchBootstrapper`),
-but for cases like `SharedPreferences` and `FirebaseApp`, it makes sense to warm those up globally.
+توی فلاتر، اغلب (و وقتی ممکنه، باید) از `.toWarmUpWidget()` استفاده کنی  
+تا کپسول‌ها رو توی بخش‌های تودرتوتر درخت ویجت گرم کنی.  
+گرم کردن کپسول‌ها توی یه مکان تودرتوتر یه روش بهتر از گرم کردن کپسول‌ها به‌صورت عمومیه  
+(یعنی درست زیر `RearchBootstrapper`)،  
+ولی برای مواردی مثل `SharedPreferences` و `FirebaseApp`، منطقیه که اونا رو به‌صورت عمومی گرم کنی.
 
+## یه مثال
+اینجا یه مثال سریع داریم که نشون می‌ده چطور یه کپسول رو گرم کنی.
 
-## An Example
-Here is a quick example that shows you how to warm up a capsule.
-
-<CodeGroup title="Warming up asynchronous warm up capsules">
+<CodeGroup title="گرم کردن کپسول‌های گرم‌کننده ناهمزمان">
   ```dart
   final sharedPrefsAsyncCapsule = capsule((use) => SharedPreferences.getInstance());
   final sharedPrefsWarmUpCapsule = capsule((use) {
@@ -48,16 +47,16 @@ Here is a quick example that shows you how to warm up a capsule.
     return use.future(sharedPrefsFuture);
   });
   final sharedPrefsCapsule = capsule((use) => use(sharedPrefsWarmUpCapsule).dataOrElse(
-    () => throw StateError('sharedPrefsWarmUpCapsule was not warmed up!'),
+    () => throw StateError('کپسول sharedPrefsWarmUpCapsule گرم نشده!'),
   ));
 
   int? count(CapsuleHandle use) {
-    // Notice how `use` returns a synchronous `SharedPreferences`,
-    // i.e., *not* an AsyncValue<SharedPreferences>.
+    // توجه کن که `use` یه `SharedPreferences` همزمان برمی‌گردونه،  
+    // یعنی *نه* یه AsyncValue<SharedPreferences>.  
     return use(sharedPrefsCapsule).getInt('count');
   }
 
-  // Now, let's create our "warm up widget"
+  // حالا بیایم ویجت "گرم‌کننده"مون رو بسازیم  
   class GlobalWarmUps extends RearchConsumer {
     const GlobalWarmUps({required this.child, super.key});
 
@@ -65,21 +64,21 @@ Here is a quick example that shows you how to warm up a capsule.
     
     Widget build(BuildContext context, WidgetHandle use) {
       return [
-        // When any of the following warm up capsules error out,
-        // the errorBuilder is invoked.
-        // If any are still loading, the loading widget is shown.
-        // If there are no AsyncErrors or AsyncLoadings, child is shown.
-        // Note: all loading happens in parallel automatically
-        // to speed up your loading times!
+        // وقتی هر کدوم از کپسول‌های گرم‌کننده زیر خطا بدن،  
+        // errorBuilder فراخوانی می‌شه.  
+        // اگه هر کدوم هنوز در حال لود شدن باشن، ویجت لودینگ نشون داده می‌شه.  
+        // اگه هیچ AsyncError یا AsyncLoading وجود نداشته باشه، child نشون داده می‌شه.  
+        // توجه: همه لودینگ‌ها به‌صورت خودکار موازی انجام می‌شن  
+        // تا زمان لودینگت سریع‌تر بشه!  
 
         use(sharedPrefsWarmUpCapsule),
-        // other warm ups here...
+        // کپسول‌های گرم‌کننده دیگه اینجا...  
       ].toWarmUpWidget(
         child: child,
         loading: const Center(child: CircularProgressIndicator.adaptive()),
         errorBuilder: (errors) => Column(children: [
-          // You might want your error display here to be prettier than this one.
-          // You can even wrap the Column in a MaterialApp/Scaffold.
+          // شاید بخوای نمایش خطاهات اینجا قشنگ‌تر از این باشه.  
+          // حتی می‌تونی Column رو توی یه MaterialApp/Scaffold بپیچی.  
           for (final AsyncError(:error, :stackTrace) in errors)
             Text('$error\n$stackTrace'),
         ]),
@@ -95,11 +94,10 @@ Here is a quick example that shows you how to warm up a capsule.
   ```
 </CodeGroup>
 
-And here's a complete, runnable version of the above.
+و اینجا یه نسخه کامل و قابل‌اجرا از مثال بالا رو داریم.
 
 <Zapp id="github/GregoryConrad/rearch-dart/tree/main/examples/count_warm_up" />
 
-
-## Credit
-Warming up capsules is not a pattern unqiue to ReArch;
-in fact, I copied it directly from Riverpod and made some slight tweaks to make it easier.
+## اعتبار
+گرم کردن کپسول‌ها یه الگوی خاص ReArch نیست؛  
+در واقع، من این رو مستقیماً از Riverpod کپی کردم و یه سری تغییرات کوچک دادم تا ساده‌تر بشه.
