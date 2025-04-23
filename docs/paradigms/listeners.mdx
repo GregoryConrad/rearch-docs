@@ -1,93 +1,93 @@
 ---
-title: Listeners
-description: Learn the basics behind listeners in ReArch.
+title: شنونده‌ها
+description: با اصول اولیه شنونده‌ها توی ReArch آشنا شو.
 ---
 
-# Listeners
-There are two types of listeners in ReArch:
-1. Temporary listeners that are manually disposed when no longer needed
-2. Listeners that live as long as the container itself (such as for a logger)
+# شنونده‌ها
+توی ReArch دو نوع شنونده داریم:  
+1. شنونده‌های موقتی که وقتی دیگه نیازی بهشون نیست به‌صورت دستی حذف می‌شن  
+2. شنونده‌هایی که تا وقتی خود کانتینر زنده‌ست، زنده می‌مونن (مثلاً برای یه لاگر)  
 
-The first type of listener is handled via the `listen` method present on containers,
-and is covered in [Containers](/core/containers).
-The second is what this page will cover.
+نوع اول شنونده از طریق متد `listen` که روی کانتینرها وجود داره مدیریت می‌شه،  
+و توی [کانتینرها](/core/containers) توضیح داده شده.  
+نوع دوم چیزیه که این صفحه بهش می‌پردازه.
 
-To implement a long-lived listener,
-all one must do is make a new capsule (with a small modification--keep reading)!
-Your _first_ (incorrect) attempt may look something like:
+برای پیاده‌سازی یه شنونده بلندمدت،  
+فقط کافیه یه کپسول جدید بسازی (با یه تغییر کوچیک—ادامه رو بخون)!  
+اولین تلاشت (که *اشتباهه*) ممکنه چیزی شبیه این باشه:
 
 ```dart
-/// A listener capsule that listens to some other capsule(s).
-/// Notice the `void` return type;
-/// listeners merely listen to other data and do not return anything.
-/// WARNING: this is (slightly) incorrect! Keep reading for more.
+/// یه کپسول شنونده که به یه سری کپسول دیگه گوش می‌ده.  
+/// توجه کن به نوع بازگشتی `void`؛  
+/// شنونده‌ها فقط به داده‌های دیگه گوش می‌دن و چیزی برنمی‌گردونن.  
+/// هشدار: این (یه کم) اشتباهه! برای اطلاعات بیشتر ادامه رو بخون.  
 void myListener(CapsuleHandle use) {
   print(use(foobarCapsule));
 }
 
-// In your main() function or similar,
-// initialize the listener (which calls it once):
-container.read(myListener);                                    // dart-only
-CapsuleContainerProvider.containerOf(context).read(myListener) // flutter
+// توی تابع main() یا یه جای مشابه،  
+// شنونده رو مقداردهی کن (که یه بار صداش می‌کنه):  
+container.read(myListener);                                    // فقط دارت  
+CapsuleContainerProvider.containerOf(context).read(myListener) // فلاتر
 ```
 
-However, the above _won't work as you expect_; 
-the listener will be invoked once,
-but will never be invoked again.
-What is going on?
+اما کد بالا *اون‌طور که انتظار داری کار نمی‌کنه*؛  
+شنونده یه بار فراخوانی می‌شه،  
+ولی دیگه هیچ‌وقت دوباره فراخوانی نمی‌شه.  
+داره چی می‌گذره؟
 
-The key here is that `myListener` uses a side effect (`print()`)
-that ReArch doesn't know about since it wasn't captured via a `use.xyz` effect.
-Internally, ReArch remembers which capsules use side effects and uses that information to enable
-important optimizations, namely _idempotent garbage collection_ (GC).
-Long story short, in our example above,
-when `foobarCapsule` emits new data,
-`myListener` will be automatically disposed (versus rebuilding) since it doesn't have any _demand_.
-A capsule has demand when it, or one of its dependents, registers a side effect
-(which includes being listened to by a widget that is a part of the UI).
+نکته کلیدی اینجاست که `myListener` از یه اثر جانبی (`print()`) استفاده می‌کنه  
+که ReArch ازش خبر نداره چون از طریق یه اثر `use.xyz` ثبت نشده.  
+داخلاً، ReArch یادش می‌مونه که کدوم کپسول‌ها از اثرات جانبی استفاده می‌کنن و از این اطلاعات برای فعال کردن  
+بهینه‌سازی‌های مهمی استفاده می‌کنه، به‌خصوص _جمع‌آوری زباله ایدمپوتنت (idempotent garbage collection)_.  
+به‌طور خلاصه، توی مثال بالا،  
+وقتی `foobarCapsule` داده جدید منتشر می‌کنه،  
+`myListener` به‌صورت خودکار حذف می‌شه (به‌جای اینکه بازسازی بشه) چون هیچ _تقاضایی_ نداره.  
+یه کپسول وقتی تقاضا داره که خودش یا یکی از وابسته‌هاش یه اثر جانبی ثبت کنه  
+(که شامل گوش دادن توسط یه ویجت که بخشی از UI هست هم می‌شه).
 
-Thus, the solution here is simple: since we are using a side effect in `myListener`
-that ReArch doesn't know about, let's just tell ReArch that we are using a side effect!
-You could just register any random side effect,
-but there is a builtin no-op side effect that declares a capsule as a listener
-(and since it's a side effect, disables the GC).
+پس راه‌حل اینجا ساده‌ست: چون توی `myListener` از یه اثر جانبی استفاده می‌کنیم  
+که ReArch ازش خبر نداره، بیایم به ReArch بگیم که داریم از یه اثر جانبی استفاده می‌کنیم!  
+می‌تونی هر اثر جانبی تصادفی‌ای رو ثبت کنی،  
+ولی یه اثر جانبی no-op داخلی وجود داره که یه کپسول رو به‌عنوان شنونده اعلام می‌کنه  
+(و چون یه اثر جانبیه، جمع‌آوری زباله رو غیرفعال می‌کنه).
 
 ```dart
-/// A fixed version of the listener that registers a side effect
-/// so that it won't be automatically disposed.
+/// نسخه اصلاح‌شده شنونده که یه اثر جانبی ثبت می‌کنه  
+/// تا به‌صورت خودکار حذف نشه.  
 void myListener(CapsuleHandle use) {
   use.asListener();
   print(use(foobarCapsule));
 }
 
-// And finally initialize the listener somewhere near the start of your application.
-container.read(myListener);                                    // dart-only
-CapsuleContainerProvider.containerOf(context).read(myListener) // flutter
+// و در نهایت شنونده رو یه جایی نزدیک شروع اپلیکیشنت مقداردهی کن.  
+container.read(myListener);                                    // فقط دارت  
+CapsuleContainerProvider.containerOf(context).read(myListener) // فلاتر
 ```
 
 <Info>
-	`CapsuleContainerProvider.containerOf()` is a Flutter-specific method that grabs
-	the container of the running application.
-	It is acceptable to use this function to initialize listeners, but _almost_ nothing else.
-	(It also serves as an escape hatch for when interacting with some external APIs
-	that don't play nicely with ReArch's reactivity.)
+`CapsuleContainerProvider.containerOf()` یه متد خاص فلاتره که  
+کانتینر اپلیکیشن در حال اجرا رو می‌گیره.  
+استفاده از این تابع برای مقداردهی شنونده‌ها اشکالی نداره، ولی برای _تقریباً_ هیچ چیز دیگه‌ای نباید استفاده بشه.  
+(همچنین به‌عنوان یه راه فرار برای وقتی که با یه سری API خارجی کار می‌کنی  
+که با واکنش‌پذیری ReArch خوب بازی نمی‌کنن عمل می‌کنه.)
 
-	Since using `CapsuleContainerProvider.containerOf` is frowned upon in almost all situations,
-	you can also get away with initializing listeners via the following:
-	```dart
-  class InitializeListeners extends RearchConsumer {
-    const InitializeListeners({required this.child, super.key});
+از اونجایی که استفاده از `CapsuleContainerProvider.containerOf` توی تقریباً همه موقعیت‌ها توصیه نمی‌شه،  
+می‌تونی با روش زیر هم شنونده‌ها رو مقداردهی کنی:  
+```dart
+class InitializeListeners extends RearchConsumer {
+  const InitializeListeners({required this.child, super.key});
 
-    final Widget child;
-    
-  	Widget build(BuildContext context, WidgetHandle use) {
-  	  use(myListener);
-  	  return child;
-  	}
+  final Widget child;
+  
+  Widget build(BuildContext context, WidgetHandle use) {
+    use(myListener);
+    return child;
   }
-	```
-	And throwing an `InitializeListeners` widget right below your `RearchBootstrapper`.
-	If you are a stickler for declarative code, this is an alternative way for you to
-	initialize your application declaratively
-	and avoid using `CapsuleContainerProvider.containerOf()`.
+}
+```  
+و یه ویجت `InitializeListeners` درست زیر `RearchBootstrapper` بندازی.  
+اگه به کد اعلانی (declarative) خیلی مقیدی، این یه روش جایگزین براته  
+که اپلیکیشنت رو به‌صورت اعلانی مقداردهی کنی  
+و از استفاده از `CapsuleContainerProvider.containerOf()` پرهیز کنی.
 </Info>
