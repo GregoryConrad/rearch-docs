@@ -1,37 +1,36 @@
 ---
-title: Widgets
-description: Learn how to create custom widgets in ReArch with Flutter.
+title: ویجت‌ها
+description: یاد بگیر چطور ویجت‌های سفارشی توی ReArch با فلاتر بسازی.
 ---
 
-# Widgets
-When creating a UI, it makes sense to boil down individual views to their functional requirements:
-- displaying certain data/state
-- modifying certain data/state
-- wrapping around/displaying other views
+# ویجت‌ها
+وقتی یه رابط کاربری (UI) می‌سازی، منطقیه که نماهای جداگانه رو به نیازهای تابعی‌شون تجزیه کنی:  
+- نمایش دادن داده/حالت خاص  
+- تغییر دادن داده/حالت خاص  
+- پیچیدن دور/نمایش دادن نماهای دیگه  
 
-As such, UI is often described as a *function of state*;
-ReArch takes this one step further by classifying UI as a
-function of state *and* any side effect(s).
+به همین دلیل، رابط کاربری اغلب به‌عنوان یه *تابع از حالت* توصیف می‌شه؛  
+ReArch این رو یه قدم جلوتر می‌بره و رابط کاربری رو به‌عنوان یه  
+تابع از حالت *و* هر گونه اثر جانبی‌ای طبقه‌بندی می‌کنه.
 
-Sound familiar? It's because capsules are also functions of state and side effect(s)!
-Just like capsules, you define widgets as functions consuming state and side effect(s).
+آشنا به نظر می‌رسه؟ چون کپسول‌ها هم توابع حالت و اثر جانبی هستن!  
+درست مثل کپسول‌ها، ویجت‌ها رو هم به‌عنوان توابعی تعریف می‌کنی که حالت و اثر جانبی مصرف می‌کنن.
 
+## یه مثال کامل
+اول، بیایم یه سری کپسول برای استفاده توی ویجت‌هامون تعریف کنیم.  
+کپسول‌ها رو می‌تونی توی همون فایل ویجت‌ها یا توی فایل‌های کاملاً جدا تعریف کنی.
+```dart title="تعریف چند کپسول"
+String _salutationCapsule(CapsuleHandle _) => 'سلام';
 
-## Full Example
-First, let's define some capsules for use in our widgets.
-Capsules can be defined in the same file as widgets, or in completely separate file(s).
-```dart title="Defining some capsules"
-String _salutationCapsule(CapsuleHandle _) => 'Hello';
-
-(String, void Function(String)) firstNameCapsule(CapsuleHandle use) => use.state('Alice');
+(String, void Function(String)) firstNameCapsule(CapsuleHandle use) => use.state('آلیس');
 
 String greetingCapsule(CapsuleHandle use) {
   return '${use(_salutationCapsule)} ${use(firstNameCapsule).$1}!';
 } 
 ```
 
-Next, let's use these capsules in a custom widget.
-```dart title="Defining a custom widget"
+بعد، بیایم از این کپسول‌ها توی یه ویجت سفارشی استفاده کنیم.
+```dart title="تعریف یه ویجت سفارشی"
 class MyAppBody extends RearchConsumer {
   const MyAppBody({super.key});
 
@@ -53,12 +52,11 @@ class MyAppBody extends RearchConsumer {
 MyAppPage(child: const MyAppBody());
 ```
 
-
-## The `RearchBuilder`
-The `RearchBuilder` enables you to delegate building a widget
-to a callback that has access to a `WidgetHandle` and a `BuildContext`.
-This can be useful when you want to simply get a new `WidgetHandle` inline with some other widgets
-when it might not make sense to make an entirely new widget (just like Flutter's `Builder` itself).
+## `RearchBuilder`
+`RearchBuilder` بهت اجازه می‌ده ساختن یه ویجت رو  
+به یه callback واگذار کنی که به `WidgetHandle` و `BuildContext` دسترسی داره.  
+این می‌تونه مفید باشه وقتی بخوای به‌سادگی یه `WidgetHandle` جدید رو به‌صورت درون‌خطی  
+با یه سری ویجت دیگه بگیری، وقتی که ساختن یه ویجت کاملاً جدید منطقی نباشه (درست مثل خود `Builder` فلاتر).
 ```dart
 MyWidget(
   child: RearchBuilder(
