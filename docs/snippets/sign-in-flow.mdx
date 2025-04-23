@@ -1,27 +1,27 @@
 ---
-title: Sign In Flow
-description: Copy-pasteable solution to sign-in flow using ReArch.
+title: جریان ورود
+description: راه‌حل قابل کپی-پیست برای جریان ورود با استفاده از ReArch.
 ---
 
-# Sign In Flow
-How to relay the state of an asynchronous action in the UI while it occurs via "mutations."
+# جریان ورود
+چطور حالت یه اکشن ناهمزمان رو توی UI در حین انجامش با استفاده از "جهش‌ها (mutations)" منتقل کنیم.
 ```dart
-/// Provides a [Random].
-// NOTE: encapsulating this enables easy implementation switching later on.
+/// یه [Random] فراهم می‌کنه.  
+// توجه: کپسوله کردن این باعث می‌شه بعداً تغییر پیاده‌سازی آسون‌تر بشه.  
 final Capsule<Random> randomCapsule = capsule((use) => Random());
 
-/// Provides a function that signs the user in.
+/// یه تابع فراهم می‌کنه که کاربر رو وارد می‌کنه.  
 final Capsule<Future<void> Function(String, String)> signInAction = capsule((use) {
-  // NOTE: we have this `use` call up top (before it is actually needed)
-  // because you must never use a CapsuleHandle across an asynchronous gap
-  // (which includes in a function callback (below) or after an await).
-  // But don't worry, ReArch will give you a reminder if you ever forget.
+  // توجه: ما این فراخوانی `use` رو بالا (قبل از اینکه واقعاً نیازش داشته باشیم) داریم  
+  // چون هرگز نباید از CapsuleHandle توی یه فاصله ناهمزمان استفاده کنی  
+  // (که شامل توی یه تابع callback (پایین) یا بعد از یه await می‌شه).  
+  // ولی نگران نباش، ReArch اگه یادت بره بهت یادآوری می‌کنه.  
   final random = use(randomCapsule);
 
   return (email, password) {
-    // Dummy implementation that is fallible
+    // پیاده‌سازی ساختگی که ممکنه خطا بده  
     return Future.delayed(const Duration(seconds: 1), () {
-      if (random.nextBool()) throw Exception('Sign in failed');
+      if (random.nextBool()) throw Exception('ورود ناموفق بود');
     });
   };
 });
@@ -45,11 +45,11 @@ class SignInForm extends RearchConsumer {
         ElevatedButton.icon(
           icon: const Icon(Icons.person_rounded),
           onPressed: signInState is AsyncLoading ? null : signIn,
-          label: const Text('Sign In'),
+          label: const Text('ورود'),
         ),
         switch (signInState) {
-          null => const SizedBox.shrink(), // no sign-in attempted yet
-          AsyncData<void>() => const Text('Signed In'),
+          null => const SizedBox.shrink(), // هنوز تلاشی برای ورود نشده  
+          AsyncData<void>() => const Text('وارد شد'),
           AsyncLoading<void>() => const CircularProgressIndicator(),
           AsyncError<void>(:final error) => Text('$error'),
         },
