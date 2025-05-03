@@ -36,90 +36,90 @@ name: ReArch
        link: https://github.com/sponsors/GregoryConrad
      # TODO discord or community of some sort
 
-   sidebar:
-     en:
-       - - Overview
-         - /
-       - - Getting Started
-         - /getting-started
-       - - FAQs
-         - /faqs
-       - - Core Components
-         - - - Capsules
-             - /core/capsules
-           - - Containers
-             - /core/containers
-           - - Side Effects
-             - /core/effects
-       - - Paradigms
-         - - - Factories
-             - /paradigms/factories
-           - - Actions
-             - /paradigms/actions
-           - - Asynchronous Capsules
-             - /paradigms/async-capsules
-           - - Warm Up Capsules (Async to Sync)
-             - /paradigms/warm-up-capsules
-           - - Listeners and Logging
-             - /paradigms/listeners
-       - - Snippets
-         - - - Testing/Mocks
-             - /snippets/testing-mocks
-           - - Widgets
-             - /snippets/widgets
-           - - Scoping State
-             - /snippets/scoping-state
-           - - Sign In Flow
-             - /snippets/sign-in-flow
-           - - Infinite Scrolling
-             - /snippets/infinite-scrolling
-       - - Side Effect Library
-         - - - Rust Effects
-             - https://docs.rs/rearch-effects/latest/rearch_effects/
-           - - Dart Effects
-             - https://pub.dev/documentation/rearch/latest/rearch/BuiltinSideEffects.html
-           - - Flutter Widget Effects
-             - https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html
-     fa:
-       - - مرور کلی
-         - /
-       - - شروع به کار
-         - /getting-started
-       - - سوالات متداول
-         - /faqs
-       - - اجزای اصلی
-         - - - کپسول‌ها
-             - /core/capsules
-           - - کانتینرها
-             - /core/containers
-           - - اثرات جانبی
-             - /core/effects
-       - - پارادایم‌ها
-         - - - کارخانه‌ها
-             - /paradigms/factories
-           - - اقدامات
-             - /paradigms/actions
-           - - کپسول‌های ناهمگام
-             - /paradigms/async-capsules
-           - - کپسول‌های گرم‌کننده (ناهمگام به همگام)
-             - /paradigms/warm-up-capsules
-           - - شنوندگان و لاگ‌گیری
-             - /paradigms/listeners
-       - - قطعه‌کدها
-         - - - تست/ماک‌ها
-             - /snippets/testing-mocks
-           - - ویجت‌ها
-             - /snippets/widgets
-           - - محدود کردن حالت
-             - /snippets/scoping-state
-           - - جریان ورود
-             - /snippets/sign-in-flow
-           - - اسکرول بی‌نهایت
-             - /snippets/infinite-scrolling
-       - - کتابخانه اثرات جانبی
-         - - - اثرات راست
-             - https://docs.rs/rearch-effects/latest/rearch_effects/
-           - - اثرات دارت
-             - https://pub.dev/documentation/rearch/latest/rearch/BuiltinSideEffects.html
-           - - اثرات ویجت فلاتر
-             - https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html
+sidebar:
+  en:
+    - - Overview
+      - /
+    - - Getting Started
+      - /getting-started
+    - - FAQs
+      - /faqs
+    - - Core Components
+      - - - Capsules
+          - /core/capsules
+        - - Containers
+          - /core/containers
+        - - Side Effects
+          - /core/effects
+    - - Paradigms
+      - - - Factories
+          - /paradigms/factories
+        - - Actions
+          - /paradigms/actions
+        - - Asynchronous Capsules
+          - /paradigms/async-capsules
+        - - Warm Up Capsules (Async to Sync)
+          - /paradigms/warm-up-capsules
+        - - Listeners and Logging
+          - /paradigms/listeners
+    - - Snippets
+      - - - Testing/Mocks
+          - /snippets/testing-mocks
+        - - Widgets
+          - /snippets/widgets
+        - - Scoping State
+          - /snippets/scoping-state
+        - - Sign In Flow
+          - /snippets/sign-in-flow
+        - - Infinite Scrolling
+          - /snippets/infinite-scrolling
+    - - Side Effect Library
+      - - - Rust Effects
+          - https://docs.rs/rearch-effects/latest/rearch_effects/
+        - - Dart Effects
+          - https://pub.dev/documentation/rearch/latest/rearch/BuiltinSideEffects.html
+        - - Flutter Widget Effects
+          - https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html
+  fa:
+    - - مرور کلی
+      - /
+    - - شروع به کار
+      - /getting-started
+    - - سوالات متداول
+      - /faqs
+    - - اجزای اصلی
+      - - - کپسول‌ها
+          - /core/capsules
+        - - کانتینرها
+          - /core/containers
+        - - اثرات جانبی
+          - /core/effects
+    - - پارادایم‌ها
+      - - - کارخانه‌ها
+          - /paradigms/factories
+        - - اقدامات
+          - /paradigms/actions
+        - - کپسول‌های ناهمگام
+          - /paradigms/async-capsules
+        - - کپسول‌های گرم‌کننده (ناهمگام به همگام)
+          - /paradigms/warm-up-capsules
+        - - شنوندگان و لاگ‌گیری
+          - /paradigms/listeners
+    - - قطعه‌کدها
+      - - - تست/ماک‌ها
+          - /snippets/testing-mocks
+        - - ویجت‌ها
+          - /snippets/widgets
+        - - محدود کردن حالت
+          - /snippets/scoping-state
+        - - جریان ورود
+          - /snippets/sign-in-flow
+        - - اسکرول بی‌نهایت
+          - /snippets/infinite-scrolling
+    - - کتابخانه اثرات جانبی
+      - - - اثرات راست
+          - https://docs.rs/rearch-effects/latest/rearch_effects/
+        - - اثرات دارت
+          - https://pub.dev/documentation/rearch/latest/rearch/BuiltinSideEffects.html
+        - - اثرات ویجت فلاتر
+          - https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html
