@@ -23,42 +23,42 @@
     {
       "title": "Pub.dev Package",
       "icon": "cube",
-      "href": "https://pub.dev/packages/rearch",
+      "href": "https://pub.dev/packages/rearch"
     },
     {
       "title": "Crates.io Crate",
       "icon": "cube",
-      "href": "https://crates.io/crates/rearch",
+      "href": "https://crates.io/crates/rearch"
     },
     {
       "title": "GitHub (Dart)",
       "icon": "github",
-      "href": "https://github.com/GregoryConrad/rearch-dart",
+      "href": "https://github.com/GregoryConrad/rearch-dart"
     },
     {
       "title": "GitHub (Rust)",
       "icon": "github",
-      "href": "https://github.com/GregoryConrad/rearch-rs",
+      "href": "https://github.com/GregoryConrad/rearch-rs"
     },
     {
       "title": "GitHub (Docs)",
       "icon": "github",
-      "href": "https://github.com/GregoryConrad/rearch-docs",
+      "href": "https://github.com/GregoryConrad/rearch-docs"
     },
     {
       "title": "Discussions + Q&A (Dart)",
       "icon": "github",
-      "href": "https://github.com/gregoryconrad/rearch-dart/discussions",
+      "href": "https://github.com/gregoryconrad/rearch-dart/discussions"
     },
     {
       "title": "Discussions + Q&A (Rust)",
       "icon": "github",
-      "href": "https://github.com/gregoryconrad/rearch-rs/discussions",
+      "href": "https://github.com/gregoryconrad/rearch-rs/discussions"
     },
     {
       "title": "Sponsor Me",
       "icon": "hand-holding-dollar",
-      "href": "https://github.com/sponsors/GregoryConrad",
+      "href": "https://github.com/sponsors/GregoryConrad"
     }
   ],
   "sidebar": {
