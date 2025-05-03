@@ -1,2 +1,2 @@
 # rearch-docs
-این مخزن به‌عنوان منبع مستندات برای پیاده‌سازی‌های مختلف ReArch عمل می‌کنه.
+This repository serves as the documentation source for the various ReArch implementations.
