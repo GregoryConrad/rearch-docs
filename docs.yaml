@@ -82,7 +82,7 @@ name: ReArch
              - https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html
      fa:
        - - مرور کلی
-         - /
+         - /overview
        - - شروع به کار
          - /getting-started
        - - سوالات متداول
@@ -114,4 +114,12 @@ name: ReArch
              - /snippets/scoping-state
            - - جریان ورود
              - /snippets/sign-in-flow
-           - - اس
+           - - اسکرول بی‌نهایت
+             - /snippets/infinite-scrolling
+       - - کتابخانه افکت‌های جانبی
+         - - - افکت‌های جانبی راست
+             - https://docs.rs/rearch-effects/latest/rearch_effects/
+           - - افکت‌های جانبی دارت
+             - https://pub.dev/documentation/rearch/latest/rearch/BuiltinSideEffects.html
+           - - افکت‌های جانبی ویجت فلاتر
+             - https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html
