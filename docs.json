@@ -9,8 +9,8 @@
     "primary": "#7f00ff"
   },
   "header": {
-    "showName": "false",
-    "showGitHubCard": "false"
+    "showName": false,
+    "showGitHubCard": false
   },
   "search": {
     "docsearch": {
