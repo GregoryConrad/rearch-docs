@@ -9,10 +9,6 @@ name: ReArch
      apiKey: 5df1db524c46ae0d48e32640d85205b8
      indexName: rearch-gsconrad
 
-   locales:
-     - en
-     - fa
-
    anchors:
      - title: Pub.dev Package
        icon: cube
@@ -86,7 +82,7 @@ name: ReArch
              - https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html
      fa:
        - - مرور کلی
-         - /overview
+         - /
        - - شروع به کار
          - /getting-started
        - - سوالات متداول
