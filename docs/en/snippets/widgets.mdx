@@ -1,0 +1,70 @@
+---
+title: Widgets
+description: Learn how to create custom widgets in ReArch with Flutter.
+---
+
+# Widgets
+When creating a UI, it makes sense to boil down individual views to their functional requirements:
+- displaying certain data/state
+- modifying certain data/state
+- wrapping around/displaying other views
+
+As such, UI is often described as a *function of state*;
+ReArch takes this one step further by classifying UI as a
+function of state *and* any side effect(s).
+
+Sound familiar? It's because capsules are also functions of state and side effect(s)!
+Just like capsules, you define widgets as functions consuming state and side effect(s).
+
+
+## Full Example
+First, let's define some capsules for use in our widgets.
+Capsules can be defined in the same file as widgets, or in completely separate file(s).
+```dart title="Defining some capsules"
+String _salutationCapsule(CapsuleHandle _) => 'Hello';
+
+(String, void Function(String)) firstNameCapsule(CapsuleHandle use) => use.state('Alice');
+
+String greetingCapsule(CapsuleHandle use) {
+  return '${use(_salutationCapsule)} ${use(firstNameCapsule).$1}!';
+} 
+```
+
+Next, let's use these capsules in a custom widget.
+```dart title="Defining a custom widget"
+class MyAppBody extends RearchConsumer {
+  const MyAppBody({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetHandle use) {
+    return Scaffold(
+      appBar: AppBar(title: Text(use(greetingCapsule))),
+      body: Center(
+        child: TextField(
+          onChanged: use(firstNameCapsule).$2,
+        ),
+      ),
+    );
+  }
+}
+
+// ...
+
+MyAppPage(child: const MyAppBody());
+```
+
+
+## The `RearchBuilder`
+The `RearchBuilder` enables you to delegate building a widget
+to a callback that has access to a `WidgetHandle` and a `BuildContext`.
+This can be useful when you want to simply get a new `WidgetHandle` inline with some other widgets
+when it might not make sense to make an entirely new widget (just like Flutter's `Builder` itself).
+```dart
+MyWidget(
+  child: RearchBuilder(
+    builder: (context, use) {
+      return Placeholder();
+    },
+  ),
+);
+```

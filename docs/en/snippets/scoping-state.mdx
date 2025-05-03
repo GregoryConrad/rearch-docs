@@ -1,0 +1,40 @@
+---
+title: Scoping State (Injections)
+description: Learn how to scope state (via Injections) in ReArch.
+---
+
+# Scoping State (Injections)
+Scoping state may be achieved via the combination of a `RearchConsumer` in conjunction
+with a new `InheritedWidget`.
+
+However, since that results in a _ton_ of boilerplate,
+ReArch comes with a builtin `RearchInjection` widget that "injects" state into the widget tree:
+
+```dart
+/// Provides the current count to descendants in the [Widget] tree.
+class CountInjection extends RearchInjection<CountInjection, ValueWrapper<int>> {
+  const CountInjection({required super.child, super.key});
+
+  @override
+  ValueWrapper<int> build(BuildContext context, WidgetHandle use) {
+    return use.data(0);
+  }
+
+  static ValueWrapper<int> of(BuildContext context) =>
+      RearchInjection.of<CountInjection, ValueWrapper<int>>(context);
+
+  static ValueWrapper<int>? maybeOf(BuildContext context) =>
+      RearchInjection.maybeOf<CountInjection, ValueWrapper<int>>(context);
+}
+
+const SomeWidget(
+  child: CountInjection(
+    child: Builder(
+      builder: (context) {
+        final count = CountInjection.of(context);
+        return Text('${count.value}');
+      },
+    ),
+  ),
+)
+```

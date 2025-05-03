@@ -1,0 +1,77 @@
+---
+title: Infinite Scrolling
+description: Learn how to create infintely scrolling lists in ReArch.
+---
+
+# Infinite Scrolling
+Infinite scrolling is actually *really* easy to do in ReArch!
+ReArch gives you the flexibility to do it in almost any way you choose,
+but here are the two standard ways:
+1. Use a factory and let Flutter handle the disposal of out-of-view widgets (preferred).
+You can easily customize how long widgets are kept alive with `use.automaticKeepAlive`!
+2. Keep your own cache and grow it as the user scrolls (not as recommended).
+Whenever new widgets come into view, they add elements to a capsule of type `List<Future<T>>`.
+
+Both approaches described above utilize a more advanced technique
+described in [Reducing Builds](/core/capsules#reducing-builds).
+
+## Example
+Here is a quick example that showcases the first option above.
+
+```dart
+/// A factory capsule that returns the input data after a brief delay.
+/// This also doubles as an example of a generic capsule.
+Future<T> Function(T) delayedEchoFactory<T>(CapsuleHandle _) {
+  return (data) => Future.delayed(const Duration(seconds: 1), () => data);
+}
+
+class InfiniteList extends StatelessWidget {
+  const InfiniteList({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemBuilder: (context, index) => InfiniteScrollItem(index: index),
+    );
+  }
+}
+
+class InfiniteScrollItem extends RearchConsumer {
+  const InfiniteScrollItem({required this.index, super.key});
+
+  /// The index of this item.
+  final int index;
+
+  @override
+  Widget build(BuildContext context, WidgetHandle use) {
+    final (keepAlive, setKeepAlive) = use.state(false);
+    use.automaticKeepAlive(keepAlive: keepAlive);
+
+    final factory = use(delayedEchoFactory<int>);
+    final echoFuture = use.memo(() => factory(index), [factory, index]);
+    final echoState = use.future(echoFuture);
+
+    return ListTile(
+      selected: keepAlive,
+      onTap: () => setKeepAlive(!keepAlive),
+      leading: Icon(
+        keepAlive
+            ? Icons.task_alt_rounded
+            : Icons.radio_button_unchecked_rounded,
+      ),
+      title: switch (echoState) {
+        AsyncData(:final data) => Text('$data'),
+        AsyncLoading() => const Align(
+            alignment: Alignment.centerLeft,
+            child: CircularProgressIndicator.adaptive(),
+          ),
+        AsyncError(:final error) => Text('$error'),
+      },
+    );
+  }
+}
+```
+
+And here's a complete, runnable version of the above.
+
+<Zapp id="github/GregoryConrad/rearch-dart/tree/main/examples/infinite_scroll" />

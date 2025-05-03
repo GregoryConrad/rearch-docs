@@ -1,0 +1,105 @@
+---
+title: Warm Up Capsules
+description: Learn about warm up capsules and how to use them in ReArch.
+---
+
+# Warm Up Capsules
+Warm up capsules are useful when you have some
+asynchronous capsule whose value you want to access synchronously in the future,
+without needing all dependent capsules to themselves be asynchronous.
+This is especially helpful when dealing with something like a
+`SharedPreferences` or `FirebaseApp` instance (in Dart/Flutter)
+or a database connection (in Rust),
+which you can only get a copy of asynchronously.
+
+You *warm up* warm up capsules so that any dependent capsules are ready to use.
+For Flutter, there is a simple built-in extension method to help you warm up capsules,
+named `.toWarmUpWidget()`.
+
+<Warning>
+You *must* perform the warm up process *before any dependent capsules are read/initialized*;
+failing to do so will result in an unrecoverable error.
+</Warning>
+
+<Warning>
+You should only use application-wide warm up capsules for asynchronous values that:
+1. Are highly unlikely to fail.
+2. When fail, should be treated as unrecoverable error(s).
+
+If something in a warm up capsule fails in Flutter, anything below the warm up widget
+in the widget tree will be unaccessible and the error widget will be shown!
+</Warning>
+
+In Flutter, you can often (and when possible, should) use `.toWarmUpWidget()`
+to warm up capsules in more nested parts of the widget tree.
+Warming up capsules in a more nested location is a better practice than warming up capsules globally
+(i.e., right under `RearchBootstrapper`),
+but for cases like `SharedPreferences` and `FirebaseApp`, it makes sense to warm those up globally.
+
+
+## An Example
+Here is a quick example that shows you how to warm up a capsule.
+
+<CodeGroup title="Warming up asynchronous warm up capsules">
+  ```dart
+  final sharedPrefsAsyncCapsule = capsule((use) => SharedPreferences.getInstance());
+  final sharedPrefsWarmUpCapsule = capsule((use) {
+    final sharedPrefsFuture = use(sharedPrefsAsyncCapsule);
+    return use.future(sharedPrefsFuture);
+  });
+  final sharedPrefsCapsule = capsule((use) => use(sharedPrefsWarmUpCapsule).dataOrElse(
+    () => throw StateError('sharedPrefsWarmUpCapsule was not warmed up!'),
+  ));
+
+  int? count(CapsuleHandle use) {
+    // Notice how `use` returns a synchronous `SharedPreferences`,
+    // i.e., *not* an AsyncValue<SharedPreferences>.
+    return use(sharedPrefsCapsule).getInt('count');
+  }
+
+  // Now, let's create our "warm up widget"
+  class GlobalWarmUps extends RearchConsumer {
+    const GlobalWarmUps({required this.child, super.key});
+
+    final Widget child;
+    
+    Widget build(BuildContext context, WidgetHandle use) {
+      return [
+        // When any of the following warm up capsules error out,
+        // the errorBuilder is invoked.
+        // If any are still loading, the loading widget is shown.
+        // If there are no AsyncErrors or AsyncLoadings, child is shown.
+        // Note: all loading happens in parallel automatically
+        // to speed up your loading times!
+
+        use(sharedPrefsWarmUpCapsule),
+        // other warm ups here...
+      ].toWarmUpWidget(
+        child: child,
+        loading: const Center(child: CircularProgressIndicator.adaptive()),
+        errorBuilder: (errors) => Column(children: [
+          // You might want your error display here to be prettier than this one.
+          // You can even wrap the Column in a MaterialApp/Scaffold.
+          for (final AsyncError(:error, :stackTrace) in errors)
+            Text('$error\n$stackTrace'),
+        ]),
+      );
+    }
+  }
+
+  void main() {
+    runApp(RearchBootstrapper(
+      child: GlobalWarmUps(child: MaterialApp(...)),
+    ));
+  }
+  ```
+</CodeGroup>
+
+And here's a complete, runnable version of the above.
+
+<Zapp id="github/GregoryConrad/rearch-dart/tree/main/examples/count_warm_up" />
+
+
+## Credit
+Warming up capsules is not a pattern unqiue to ReArch;
+in fact, I copied it directly from Riverpod and made some slight tweaks to make it easier.

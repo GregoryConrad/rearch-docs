@@ -1,0 +1,115 @@
+---
+title: Factories
+description: Learn the basics behind factories in ReArch.
+---
+
+# Factories
+Factories (sometimes called factory capsules) are not unique to ReArch at all;
+in fact, ReArch just borrows the concept from OOP!
+From [Wikipedia](https://en.wikipedia.org/wiki/Factory_(object-oriented_programming)):
+> In object-oriented programming, a factory is an object for creating other objects;
+formally, it is a function or method that returns objects of a varying prototype or class
+
+In ReArch, factories are just capsules that create objects on the fly
+and can consume some additional non-capsule parameters.
+Although factories may seem complex at first,
+they actually just boil down to some very straight forward syntactic sugar.
+
+<Info>
+  If you are coming from Riverpod,
+  factories solve problems similar to those covered by Family & AutoDispose providers.
+</Info>
+
+
+## An Example
+<CodeGroup title="Example Factory Capsule">
+  ```dart
+  int dependency1Capsule(CapsuleHandle _) => 0;
+  String dependency2Capsule(CapsuleHandle _) => 'hello world!';
+
+  MyObject Function(String, int) myObjectFactory(CapsuleHandle use) {
+    // Notice how we only call `use` *before returning the factory closure*;
+    // this is important, as you cannot call `use` across an asynchronous gap.
+    // In other words, *DO NOT CALL USE WITHIN THE FACTORY BODY ITSELF*.
+    final dep1 = use(dependency1Capsule);
+    final dep2 = use(dependency2Capsule);
+    return (dep3, dep4) => MyObject(dep1, dep2, dep3, dep4);
+  }
+
+  void usesFactoryCapsule(CapsuleHandle use) {
+    final MyObject obj = use(myObjectFactory)('some string', 1234);
+    obj.doSomething();
+  }
+  ```
+
+  ```rust
+  fn dep1(_: CapsuleHandle) -> i8 {
+      0
+  }
+  fn dep2(_: CapsuleHandle) -> &'static str {
+      "hello world!"
+  }
+
+  fn my_obj_factory(
+      CapsuleHandle { mut get, .. }: CapsuleHandle,
+  ) -> impl CData + Fn(String, i8) -> MyObject {
+    let dep1 = get(dep1);
+    let dep2 = get(dep2);
+    move |dep3, dep4| MyObject::new(dep1, dep2, dep3, dep4)
+  }
+
+  fn uses_factory(CapsuleHandle { mut get, .. }: CapsuleHandle) {
+    let obj: MyObject = get(my_obj_factory)("some string".to_owned(), 1234);
+    obj.do_something();
+  }
+  ```
+</CodeGroup>
+
+<Warning>
+  Just like in capsules, factories are recreated whenever their dependency capsule(s) change,
+  and anything consuming the factory will be given a new instance of the factory!
+  In most situations, you will want to create a new instance of any factory-created objects
+  whenever the factory instance itself changes.
+</Warning>
+
+
+## Caching Created Objects
+<Info>
+  Currently, this section only provides examples using the Dart implementation,
+  since caching factory-created objects is often not needed and is not as trivial in Rust.
+  (Although if you do need to, take a look at the `run_on_change` side effect.)
+</Info>
+
+If you need to:
+- Cache a factory-created object (perhaps until the factory instance changes)
+- Dispose old factory-created objects to prevent leaks (perhaps when a new object is created)
+
+Then take a look at the following snippet.
+
+If you are familiar with React or `flutter_hooks`, this will feel exceedingly natural to you.
+See the dedicated documentation page on side effects for more.
+
+```dart title="Caching objects created with factories"
+MyCustomObject defaultParamMyCustomObjCapsule(CapsuleHandle use) {
+  // Our factory capsule:
+  final objFactory = use(objFactoryCapsule);
+
+  // Some arbitrary capsule that may cause a rebuild
+  // even when objFactory itself doesn't change:
+  final someString = use(someCapsule);
+
+  // Only recreate myObj when objFactory or someString change
+  final myObj = use.memo(() {
+    return objFactory(someString);
+  }, [objFactory, someString]);
+
+  // Whenever myObj changes, register the new object for disposal
+  use.effect(() => myObj.dispose, [myObj]);
+
+  return myObj;
+}
+```
+
+This combination of `memo` and `effect` is *very* common,
+especially when handling `FooBarController`s,
+so it is best to learn how to use them early on.
