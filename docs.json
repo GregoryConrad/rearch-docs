@@ -163,45 +163,45 @@
     "fa": [
       {
         "pages": [
-          { "title": "Overview", "href": "/" },
-          { "title": "Getting Started", "href": "/getting-started" },
-          { "title": "FAQs", "href": "/faqs" }
+          { "title": "مرور کلی", "href": "/" },
+          { "title": "شروع به کار", "href": "/getting-started" },
+          { "title": "سوالات متداول", "href": "/faqs" }
         ]
       },
       {
-        "group": "Core Components",
+        "group": "اجزای اصلی",
         "pages": [
-          { "title": "Capsules", "href": "/core/capsules" },
-          { "title": "Containers", "href": "/core/containers" },
-          { "title": "Side Effects", "href": "/core/effects" }
+          { "title": "کپسول‌ها", "href": "/core/capsules" },
+          { "title": "کانتینرها", "href": "/core/containers" },
+          { "title": "افکت‌های جانبی", "href": "/core/effects" }
         ]
       },
       {
-        "group": "Paradigms",
+        "group": "پارادایم‌ها",
         "pages": [
-          { "title": "Factories", "href": "/paradigms/factories" },
-          { "title": "Actions", "href": "/paradigms/actions" },
-          { "title": "Asynchronous Capsules", "href": "/paradigms/async-capsules" },
-          { "title": "Warm Up Capsules (Async to Sync)", "href": "/paradigms/warm-up-capsules" },
-          { "title": "Listeners and Logging", "href": "/paradigms/listeners" }
+          { "title": "کارخانه‌ها", "href": "/paradigms/factories" },
+          { "title": "اقدامات", "href": "/paradigms/actions" },
+          { "title": "کپسول‌های ناهمگام", "href": "/paradigms/async-capsules" },
+          { "title": "کپسول‌های گرم‌کننده (ناهمگام به همگام)", "href": "/paradigms/warm-up-capsules" },
+          { "title": "شنوندگان و لاگ‌گیری", "href": "/paradigms/listeners" }
         ]
       },
       {
-        "group": "Snippets",
+        "group": "قطعه‌کدها",
         "pages": [
-          { "title": "Testing/Mocks", "href": "/snippets/testing-mocks" },
-          { "title": "Widgets", "href": "/snippets/widgets" },
-          { "title": "Scoping State", "href": "/snippets/scoping-state" },
-          { "title": "Sign In Flow", "href": "/snippets/sign-in-flow" },
-          { "title": "Infinite Scrolling", "href": "/snippets/infinite-scrolling" }
+          { "title": "تست/ماک‌ها", "href": "/snippets/testing-mocks" },
+          { "title": "ویجت‌ها", "href": "/snippets/widgets" },
+          { "title": "محدود کردن حالت", "href": "/snippets/scoping-state" },
+          { "title": "جریان ورود", "href": "/snippets/sign-in-flow" },
+          { "title": "اسکرول بی‌نهایت", "href": "/snippets/infinite-scrolling" }
         ]
       },
       {
-        "group": "Side Effect Library",
+        "group": "کتابخانه افکت‌های جانبی",
         "pages": [
-          { "title": "Rust Effects", "href": "https://docs.rs/rearch-effects/latest/rearch_effects/" },
-          { "title": "Dart Effects", "href": "https://pub.dev/documentation/rearch/latest/rearch/BuiltinSideEffects.html" },
-          { "title": "Flutter Widget Effects", "href": "https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html" }
+          { "title": "افکت‌های جانبی Rust", "href": "https://docs.rs/rearch-effects/latest/rearch_effects/" },
+          { "title": "افکت‌های جانبی Dart", "href": "https://pub.dev/documentation/rearch/latest/rearch/BuiltinSideEffects.html" },
+          { "title": "افکت‌های جانبی ویجت Flutter", "href": "https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html" }
         ]
       }
     ]
