@@ -13,27 +13,35 @@ anchors:
   - title: Pub.dev Package
     icon: cube
     link: https://pub.dev/packages/rearch
+    locale: en
   - title: Crates.io Crate
     icon: cube
     link: https://crates.io/crates/rearch
+    locale: en
   - title: GitHub (Dart)
     icon: github
     link: https://github.com/GregoryConrad/rearch-dart
+    locale: en
   - title: GitHub (Rust)
     icon: github
     link: https://github.com/GregoryConrad/rearch-rs
+    locale: en
   - title: GitHub (Docs)
     icon: github
     link: https://github.com/GregoryConrad/rearch-docs
+    locale: en
   - title: Discussions + Q&A (Dart)
     icon: github
     link: https://github.com/gregoryconrad/rearch-dart/discussions
+    locale: en
   - title: Discussions + Q&A (Rust)
     icon: github
     link: https://github.com/gregoryconrad/rearch-rs/discussions
+    locale: en
   - title: Sponsor Me
     icon: 'hand-holding-dollar'
     link: https://github.com/sponsors/GregoryConrad
+    locale: en
   # TODO discord or community of some sort
 
 sidebar:
