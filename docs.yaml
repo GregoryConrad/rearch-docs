@@ -68,7 +68,7 @@ name: ReArch
            - - Widgets
              - /snippets/widgets
            - - Scoping State
-            _MAILTO_/snippets/scoping-state
+             - /snippets/scoping-state
            - - Sign In Flow
              - /snippets/sign-in-flow
            - - Infinite Scrolling
@@ -82,7 +82,7 @@ name: ReArch
              - https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html
      fa:
        - - مرور کلی
-         - /overview
+         - /
        - - شروع به کار
          - /getting-started
        - - سوالات متداول
@@ -92,7 +92,7 @@ name: ReArch
              - /core/capsules
            - - کانتینرها
              - /core/containers
-           - - افکت‌های جانبی
+           - - اثرات جانبی
              - /core/effects
        - - پارادایم‌ها
          - - - کارخانه‌ها
@@ -116,11 +116,10 @@ name: ReArch
              - /snippets/sign-in-flow
            - - اسکرول بی‌نهایت
              - /snippets/infinite-scrolling
-       - - کتابخانه افکت‌های جانبی
-         - - - افکت‌های جانبی راست
+       - - کتابخانه اثرات جانبی
+         - - - اثرات راست
              - https://docs.rs/rearch-effects/latest/rearch_effects/
-           - - افکت‌های جانبی دارت
+           - - اثرات دارت
              - https://pub.dev/documentation/rearch/latest/rearch/BuiltinSideEffects.html
-           - - افکت‌های جانبی ویجت فلاتر
+           - - اثرات ویجت فلاتر
              - https://pub.dev/documentation/flutter_rearch/latest/flutter_rearch/BuiltinWidgetSideEffects.html
-             
